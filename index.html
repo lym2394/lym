@@ -3,201 +3,301 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
-    <title>LYM2394的导航</title>
+    <title>MD 文档导航</title>
+    <!-- Markdown 解析 & 代码高亮 -->
     <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/atom-one-dark.min.css">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
     <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; }
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
 
         body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Helvetica Neue', sans-serif;
-            background: #f6f8fa;
-            color: #1f2328;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue', sans-serif;
+            background: #f9fafb;
+            color: #1e293b;
             height: 100vh;
             overflow: hidden;
         }
 
-        .app { display: flex; height: 100vh; }
-
-        /* 左侧文件列表 */
-        .sidebar {
-            width: 300px;
+        .app {
+            display: flex;
+            height: 100vh;
             background: #ffffff;
-            border-right: 1px solid #d0d7de;
+        }
+
+        /* 左侧边栏 - 文档列表 */
+        .sidebar {
+            width: 320px;
+            background: #f8fafc;
+            border-right: 1px solid #e2e8f0;
             display: flex;
             flex-direction: column;
-            flex-shrink: 0;
+            transition: all 0.2s ease;
         }
 
         .sidebar-header {
-            padding: 16px;
-            border-bottom: 1px solid #d0d7de;
-            background: #f6f8fa;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
+            padding: 20px 20px 16px 20px;
+            border-bottom: 1px solid #e2e8f0;
         }
 
         .sidebar-header h2 {
-            font-size: 14px;
+            font-size: 1.25rem;
             font-weight: 600;
+            color: #0f172a;
             display: flex;
             align-items: center;
             gap: 8px;
+            margin-bottom: 4px;
         }
 
-        .sidebar-header .badge {
-            background: #d0d7de;
-            color: #1f2328;
-            padding: 0 6px;
-            border-radius: 2em;
-            font-size: 12px;
+        .sidebar-header p {
+            font-size: 0.85rem;
+            color: #64748b;
+            margin-top: 4px;
         }
 
-        .file-list {
+        .doc-list {
             flex: 1;
             overflow-y: auto;
+            padding: 8px 0;
+            scrollbar-width: thin;
+            scrollbar-color: #cbd5e1 #f1f5f9;
         }
 
-        .file-list::-webkit-scrollbar { width: 6px; }
-        .file-list::-webkit-scrollbar-thumb { background: #d0d7de; border-radius: 3px; }
+        .doc-list::-webkit-scrollbar {
+            width: 6px;
+        }
 
-        .file-item {
-            padding: 8px 16px;
-            border-bottom: 1px solid #d0d7de;
+        .doc-list::-webkit-scrollbar-track {
+            background: #f1f5f9;
+        }
+
+        .doc-list::-webkit-scrollbar-thumb {
+            background: #cbd5e1;
+            border-radius: 3px;
+        }
+
+        .doc-list::-webkit-scrollbar-thumb:hover {
+            background: #94a3b8;
+        }
+
+        .doc-item {
+            padding: 12px 20px;
+            margin: 2px 8px;
+            border-radius: 8px;
             cursor: pointer;
+            transition: all 0.15s ease;
             display: flex;
-            align-items: flex-start;
-            gap: 8px;
-            transition: background 0.1s;
-            font-size: 13px;
+            align-items: center;
+            gap: 12px;
+            color: #334155;
+            font-size: 0.95rem;
+            border-left: 3px solid transparent;
         }
 
-        .file-item:hover { background: #f3f4f6; }
-        .file-item.active {
-            background: #ddf4ff;
-            border-left: 3px solid #0969da;
-            padding-left: 13px;
+        .doc-item:hover {
+            background: #eef2ff;
+            color: #1e293b;
+        }
+
+        .doc-item.active {
+            background: #e0e7ff;
+            color: #1e40af;
+            border-left-color: #3b82f6;
             font-weight: 500;
         }
 
-        .file-item .file-icon {
-            color: #656d76;
+        .doc-icon {
+            width: 20px;
+            height: 20px;
+            opacity: 0.7;
             flex-shrink: 0;
-            margin-top: 2px;
         }
 
-        .file-item .file-info {
+        .doc-info {
             flex: 1;
             min-width: 0;
         }
 
-        .file-item .file-title {
-            font-size: 14px;
-            line-height: 1.4;
+        .doc-title {
+            font-weight: 500;
             white-space: nowrap;
             overflow: hidden;
             text-overflow: ellipsis;
         }
 
-        .file-item .file-meta {
-            font-size: 11px;
-            color: #656d76;
+        .doc-filename {
+            font-size: 0.75rem;
+            color: #64748b;
             margin-top: 2px;
         }
 
-        /* 右侧内容 */
+        .doc-item.active .doc-filename {
+            color: #3b82f6;
+        }
+
+        .empty-state {
+            padding: 40px 20px;
+            text-align: center;
+            color: #94a3b8;
+            font-size: 0.9rem;
+        }
+
+        .empty-state svg {
+            width: 48px;
+            height: 48px;
+            margin-bottom: 16px;
+            opacity: 0.5;
+        }
+
+        /* 右侧内容区 */
         .content {
             flex: 1;
             display: flex;
             flex-direction: column;
-            overflow: hidden;
             background: #ffffff;
+            overflow: hidden;
         }
 
         .content-header {
-            padding: 16px 24px;
-            border-bottom: 1px solid #d0d7de;
+            padding: 16px 32px;
+            border-bottom: 1px solid #e2e8f0;
             background: #ffffff;
             display: flex;
             align-items: center;
+            justify-content: space-between;
+        }
+
+        .content-title {
+            font-size: 1.1rem;
+            font-weight: 500;
+            color: #0f172a;
+            display: flex;
+            align-items: center;
             gap: 10px;
-            font-size: 14px;
         }
 
-        .content-header .doc-title {
-            font-weight: 600;
-            color: #1f2328;
-        }
-
-        .content-header .doc-badge {
-            background: #ddf4ff;
-            color: #0969da;
-            padding: 2px 8px;
-            border-radius: 2em;
-            font-size: 12px;
+        .content-badge {
+            background: #dbeafe;
+            color: #1e40af;
+            padding: 2px 10px;
+            border-radius: 12px;
+            font-size: 0.75rem;
+            font-weight: 500;
         }
 
         .content-body {
             flex: 1;
             overflow-y: auto;
-            padding: 32px 40px;
+            padding: 32px 48px;
+            scroll-behavior: smooth;
         }
 
         .markdown-body {
             max-width: 900px;
             margin: 0 auto;
-            font-size: 15px;
             line-height: 1.7;
         }
 
-        /* Markdown 图片 / 视频 样式 */
-        .markdown-body img {
-            max-width: 100%;
-            height: auto;
-            border-radius: 6px;
-            margin: 12px 0;
-            cursor: pointer;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
-            transition: transform 0.15s;
-        }
-        .markdown-body img:hover { transform: scale(1.01); }
-        
-        .markdown-body .video-container {
-            position: relative;
-            padding-bottom: 56.25%;
-            height: 0;
-            overflow: hidden;
-            max-width: 100%;
-            margin: 16px 0;
-            border-radius: 6px;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
-        }
-        .markdown-body .video-container iframe,
-        .markdown-body .video-container video {
-            position: absolute;
-            top: 0; left: 0;
-            width: 100%;
-            height: 100%;
+        /* Markdown 样式优化 */
+        .markdown-body h1 {
+            font-size: 2rem;
+            font-weight: 600;
+            margin-top: 0;
+            margin-bottom: 1rem;
+            padding-bottom: 0.5rem;
+            border-bottom: 1px solid #e2e8f0;
+            color: #0f172a;
         }
 
-        .image-viewer {
-            display: none;
-            position: fixed;
-            top: 0; left: 0;
-            width: 100%; height: 100%;
-            background: rgba(0,0,0,0.9);
-            z-index: 1000;
-            cursor: zoom-out;
-            align-items: center;
-            justify-content: center;
+        .markdown-body h2 {
+            font-size: 1.5rem;
+            font-weight: 600;
+            margin-top: 2rem;
+            margin-bottom: 1rem;
+            color: #1e293b;
         }
-        .image-viewer.active { display: flex; }
-        .image-viewer img {
-            max-width: 90%;
-            max-height: 90%;
-            object-fit: contain;
+
+        .markdown-body h3 {
+            font-size: 1.25rem;
+            font-weight: 600;
+            margin-top: 1.5rem;
+            margin-bottom: 0.75rem;
+            color: #334155;
+        }
+
+        .markdown-body p {
+            margin-bottom: 1rem;
+            color: #334155;
+        }
+
+        .markdown-body code {
+            background: #f1f5f9;
+            padding: 0.2rem 0.4rem;
+            border-radius: 4px;
+            font-size: 0.9em;
+            color: #1e293b;
+        }
+
+        .markdown-body pre {
+            background: #1e293b;
+            border-radius: 8px;
+            padding: 1rem;
+            overflow-x: auto;
+            margin: 1.5rem 0;
+        }
+
+        .markdown-body pre code {
+            background: transparent;
+            padding: 0;
+            color: #e2e8f0;
+        }
+
+        .markdown-body blockquote {
+            border-left: 4px solid #3b82f6;
+            padding-left: 1rem;
+            margin: 1rem 0;
+            color: #64748b;
+            font-style: italic;
+        }
+
+        .markdown-body ul, .markdown-body ol {
+            margin: 1rem 0;
+            padding-left: 2rem;
+        }
+
+        .markdown-body li {
+            margin: 0.5rem 0;
+        }
+
+        .markdown-body a {
+            color: #3b82f6;
+            text-decoration: none;
+        }
+
+        .markdown-body a:hover {
+            text-decoration: underline;
+        }
+
+        .markdown-body table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 1rem 0;
+        }
+
+        .markdown-body th, .markdown-body td {
+            border: 1px solid #e2e8f0;
+            padding: 0.75rem;
+            text-align: left;
+        }
+
+        .markdown-body th {
+            background: #f8fafc;
+            font-weight: 600;
         }
 
         .welcome-message {
@@ -206,10 +306,27 @@
             align-items: center;
             justify-content: center;
             height: 100%;
-            color: #656d76;
             text-align: center;
+            color: #94a3b8;
         }
-        .welcome-message svg { width: 60px; height: 60px; margin-bottom: 16px; opacity: 0.6; }
+
+        .welcome-message svg {
+            width: 80px;
+            height: 80px;
+            margin-bottom: 20px;
+            opacity: 0.4;
+        }
+
+        .welcome-message h3 {
+            font-size: 1.5rem;
+            font-weight: 500;
+            margin-bottom: 8px;
+            color: #64748b;
+        }
+
+        .welcome-message p {
+            color: #94a3b8;
+        }
 
         .loading-spinner {
             display: flex;
@@ -217,239 +334,314 @@
             justify-content: center;
             height: 100%;
         }
-        .spinner {
-            width: 32px; height: 32px;
-            border: 3px solid #d0d7de;
-            border-top-color: #0969da;
-            border-radius: 50%;
-            animation: spin 0.7s infinite linear;
-        }
-        @keyframes spin { 0% { transform: rotate(0); } 100% { transform: rotate(360deg); } }
 
+        .spinner {
+            width: 40px;
+            height: 40px;
+            border: 3px solid #e2e8f0;
+            border-top-color: #3b82f6;
+            border-radius: 50%;
+            animation: spin 0.8s infinite linear;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        /* 移动端适配 */
         @media (max-width: 768px) {
-            .sidebar { width: 260px; }
-            .content-body { padding: 20px; }
+            .sidebar {
+                width: 280px;
+            }
+            
+            .content-body {
+                padding: 24px 20px;
+            }
         }
     </style>
 </head>
 <body>
     <div class="app">
-        <!-- 左侧文件列表 -->
+        <!-- 左侧文档列表 -->
         <div class="sidebar">
             <div class="sidebar-header">
                 <h2>
-                    <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor"><path d="M2 1.75A.75.75 0 0 1 2.75 1h10.5a.75.75 0 0 1 0 1.5H2.75A.75.75 0 0 1 2 1.75ZM2 8a.75.75 0 0 1 .75-.75h10.5a.75.75 0 0 1 0 1.5H2.75A.75.75 0 0 1 2 8Zm0 6.25a.75.75 0 0 1 .75-.75h10.5a.75.75 0 0 1 0 1.5H2.75a.75.75 0 0 1-.75-.75Z"/></svg>
-                    文件列表
-                    <span class="badge">100</span>
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M4 4h16v16H4z"/>
+                        <path d="M8 8h8M8 12h8M8 16h5"/>
+                    </svg>
+                    文档目录
                 </h2>
+                <p>/ 目录下的 Markdown 文件</p>
             </div>
-            <div class="file-list" id="fileList"></div>
+            <div class="doc-list" id="docList">
+                <div class="empty-state">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                        <path d="M4 4h16v16H4z"/>
+                        <path d="M8 8h8M8 12h8M8 16h5"/>
+                    </svg>
+                    <p>正在检测 MD 文件...</p>
+                </div>
+            </div>
         </div>
 
-        <!-- 右侧内容 -->
+        <!-- 右侧内容区 -->
         <div class="content">
             <div class="content-header" id="contentHeader">
-                <span class="doc-title" id="currentDocTitle">选择文件查看内容</span>
-                <span class="doc-badge" id="docBadge" style="display:none;"></span>
+                <div class="content-title">
+                    <span id="currentDocTitle">选择文档</span>
+                    <span class="content-badge" id="docBadge" style="display: none;"></span>
+                </div>
             </div>
             <div class="content-body" id="contentBody">
                 <div class="welcome-message">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M4 4h16v16H4z"/><path d="M8 8h8M8 12h8M8 16h5"/></svg>
-                    <h3 style="font-weight:500;margin-bottom:8px;">欢迎使用 LYM2394 的导航</h3>
-                    <p>从左边的文件列表中选择一个 Markdown 文件</p>
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                        <path d="M4 4h16v16H4z"/>
+                        <path d="M8 8h8M8 12h8M8 16h5"/>
+                    </svg>
+                    <h3>欢迎使用文档导航</h3>
+                    <p>请从左侧选择一个 Markdown 文件开始阅读</p>
                 </div>
             </div>
         </div>
     </div>
 
-    <!-- 图片查看器 -->
-    <div class="image-viewer" id="imageViewer" onclick="this.classList.remove('active')">
-        <img src="" alt="查看图片" id="viewerImage">
-    </div>
-
     <script>
         (function() {
+            "use strict";
+
+            // 配置 marked
+            if (typeof marked !== 'undefined') {
+                marked.setOptions({
+                    highlight: function(code, lang) {
+                        if (typeof hljs !== 'undefined' && lang && hljs.getLanguage(lang)) {
+                            try {
+                                return hljs.highlight(code, { language: lang }).value;
+                            } catch (e) {}
+                        }
+                        return code;
+                    },
+                    breaks: true,
+                    gfm: true
+                });
+            }
+
             const TOTAL_FILES = 100;
-            const fileListEl = document.getElementById('fileList');
+            const docListEl = document.getElementById('docList');
             const contentBody = document.getElementById('contentBody');
             const currentDocTitle = document.getElementById('currentDocTitle');
             const docBadge = document.getElementById('docBadge');
-            const imageViewer = document.getElementById('imageViewer');
-            const viewerImage = document.getElementById('viewerImage');
-
-            // 缓存已加载的文档数据
-            const cache = new Map(); // key: index, value: { title, html, filename }
+            
             let activeIndex = null;
-            const fileItems = new Map();
+            const docItems = new Map(); // index -> DOM element
+            const cache = new Map(); // index -> { title, html, filename }
 
-            // 配置 marked 支持图片和视频
-            if (typeof marked !== 'undefined') {
-                marked.setOptions({
-                    sanitize: false,
-                    breaks: true,
-                    gfm: true,
-                });
-
-                const renderer = new marked.Renderer();
-                const originalImage = renderer.image.bind(renderer);
-                const originalLink = renderer.link.bind(renderer);
-                const originalHtml = renderer.html.bind(renderer);
-
-                renderer.image = function(href, title, text) {
-                    if (!href) return '';
-                    return `<img src="${href}" alt="${text || ''}" title="${title || ''}" loading="lazy" onclick="event.stopPropagation(); document.getElementById('viewerImage').src='${href}'; document.getElementById('imageViewer').classList.add('active');" style="max-width:100%;border-radius:6px;cursor:pointer;">`;
-                };
-
-                renderer.html = function(html) {
-                    if (html.trim().startsWith('<img')) {
-                        const src = (html.match(/src=["']([^"']+)["']/) || [])[1];
-                        const alt = (html.match(/alt=["']([^"']*)["']/) || [])[1] || '';
-                        const title = (html.match(/title=["']([^"']*)["']/) || [])[1] || '';
-                        if (src) {
-                            return `<img src="${src}" alt="${alt}" title="${title}" loading="lazy" onclick="event.stopPropagation(); document.getElementById('viewerImage').src='${src}'; document.getElementById('imageViewer').classList.add('active');" style="max-width:100%;border-radius:6px;cursor:pointer;">`;
-                        }
-                    }
-                    if (html.includes('<iframe')) {
-                        const src = (html.match(/src=["']([^"']+)["']/) || [])[1];
-                        if (src) return createVideoEmbed(src);
-                    }
-                    return html;
-                };
-
-                renderer.link = function(href, title, text) {
-                    if (/\.(mp4|webm|ogg|mov)(\?.*)?$/i.test(href) || /youtube\.com|youtu\.be|vimeo\.com|bilibili\.com/.test(href)) {
-                        return createVideoEmbed(href, title);
-                    }
-                    return `<a href="${href}" target="_blank">${text}</a>`;
-                };
-
-                renderer.paragraph = function(text) {
-                    if (text.trim().startsWith('<img')) return text;
-                    if (/^https?:\/\/[^\s]+\.(mp4|webm|ogg|mov)/i.test(text.trim())) return createVideoEmbed(text.trim());
-                    if (/^https?:\/\/(?:www\.)?(?:youtube\.com\/watch\?v=|youtu\.be\/)([^\s]+)/.test(text.trim())) return createVideoEmbed(text.trim());
-                    return `<p>${text}</p>`;
-                };
-
-                marked.setOptions({ renderer });
+            function padIndex(i) {
+                return i.toString().padStart(2, '0');
             }
 
-            function createVideoEmbed(url, title) {
-                if (/youtube\.com\/watch\?v=|youtu\.be\//i.test(url)) {
-                    const id = (url.match(/v=([^&]+)/) || url.match(/youtu\.be\/([^?]+)/) || [])[1];
-                    return `<div class="video-container"><iframe src="https://www.youtube.com/embed/${id}" allowfullscreen></iframe></div>`;
+            // 提取 Markdown 标题和检测文件是否存在
+            async function checkAndGetDocInfo(index) {
+                const padded = padIndex(index);
+                const url = `./${padded}.md`;
+                
+                try {
+                    const response = await fetch(url, { method: 'HEAD' });
+                    if (!response.ok) {
+                        return null; // 文件不存在
+                    }
+                    
+                    // 文件存在，获取内容
+                    const contentResponse = await fetch(url);
+                    const rawMarkdown = await contentResponse.text();
+                    
+                    // 提取标题
+                    let title = null;
+                    const match = rawMarkdown.match(/^#\s+(.*?)(?:\r?\n|$)/m);
+                    if (match && match[1]) {
+                        title = match[1].trim();
+                    }
+                    
+                    // 解析 HTML
+                    let html = '';
+                    if (typeof marked !== 'undefined') {
+                        html = marked.parse(rawMarkdown);
+                    } else {
+                        html = `<pre>${rawMarkdown}</pre>`;
+                    }
+                    
+                    return {
+                        title: title || `${padded}.md`,
+                        html: html,
+                        filename: `${padded}.md`,
+                        exists: true
+                    };
+                } catch (error) {
+                    console.warn(`无法访问 ${padded}.md:`, error);
+                    return null;
                 }
-                if (/vimeo\.com\/(\d+)/.test(url)) {
-                    const id = url.match(/vimeo\.com\/(\d+)/)[1];
-                    return `<div class="video-container"><iframe src="https://player.vimeo.com/video/${id}" allowfullscreen></iframe></div>`;
-                }
-                if (/bilibili\.com\/video\/([a-zA-Z0-9]+)/.test(url)) {
-                    const id = url.match(/video\/([a-zA-Z0-9]+)/)[1];
-                    return `<div class="video-container"><iframe src="https://player.bilibili.com/player.html?bvid=${id}" allowfullscreen></iframe></div>`;
-                }
-                return `<div class="video-container"><video controls><source src="${url}"></video></div>`;
             }
 
-            // 生成左侧文件列表（不发起网络请求）
-            function buildFileList() {
-                fileListEl.innerHTML = '';
+            // 渲染文档列表（只显示存在的文件）
+            async function loadDocList() {
+                docListEl.innerHTML = '<div class="empty-state"><p>正在扫描文档...</p></div>';
+                
+                const checks = [];
                 for (let i = 1; i <= TOTAL_FILES; i++) {
-                    const padded = i.toString().padStart(2, '0');
-                    const item = document.createElement('div');
-                    item.className = 'file-item';
-                    item.dataset.index = i;
-                    item.innerHTML = `
-                        <svg class="file-icon" width="16" height="16" viewBox="0 0 16 16" fill="currentColor"><path d="M2 1.75a.75.75 0 0 1 .75-.75h6.5a.75.75 0 0 1 .53.22l4.25 4.25c.141.14.22.331.22.53v7.25a.75.75 0 0 1-.75.75h-11a.75.75 0 0 1-.75-.75V1.75Zm1.5.75v11h9V6h-3.25A.75.75 0 0 1 8.5 5.25V2H3.5Z"/></svg>
-                        <div class="file-info">
-                            <div class="file-title">${padded}.md</div>
-                            <div class="file-meta">点击加载</div>
+                    checks.push(checkAndGetDocInfo(i));
+                }
+                
+                const results = await Promise.all(checks);
+                
+                // 清空并重新构建列表
+                docListEl.innerHTML = '';
+                let hasDocs = false;
+                
+                results.forEach((docInfo, idx) => {
+                    const index = idx + 1;
+                    if (docInfo && docInfo.exists) {
+                        hasDocs = true;
+                        cache.set(index, docInfo);
+                        
+                        const docItem = createDocItem(index, docInfo);
+                        docListEl.appendChild(docItem);
+                        docItems.set(index, docItem);
+                    }
+                });
+                
+                if (!hasDocs) {
+                    docListEl.innerHTML = `
+                        <div class="empty-state">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                                <path d="M4 4h16v16H4z"/>
+                                <path d="M8 8h8M8 12h8M8 16h5"/>
+                            </svg>
+                            <p>未检测到 MD 文件</p>
+                            <p style="margin-top: 8px; font-size: 0.85rem;">请在根目录放置 01.md ~ 100.md</p>
                         </div>
                     `;
-                    item.addEventListener('click', () => loadDocument(i));
-                    fileListEl.appendChild(item);
-                    fileItems.set(i, item);
                 }
+            }
+
+            // 创建文档列表项
+            function createDocItem(index, docInfo) {
+                const div = document.createElement('div');
+                div.className = 'doc-item';
+                div.dataset.index = index;
+                
+                const displayTitle = docInfo.title.length > 30 ? 
+                    docInfo.title.slice(0, 28) + '…' : docInfo.title;
+                
+                div.innerHTML = `
+                    <svg class="doc-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M4 4h16v16H4z"/>
+                        <path d="M8 8h8M8 12h8M8 16h5"/>
+                    </svg>
+                    <div class="doc-info">
+                        <div class="doc-title">${escapeHtml(displayTitle)}</div>
+                        <div class="doc-filename">${docInfo.filename}</div>
+                    </div>
+                `;
+                
+                div.addEventListener('click', () => {
+                    loadDocument(index);
+                });
+                
+                return div;
             }
 
             // 加载并显示文档
             async function loadDocument(index) {
-                // 切换激活状态
-                if (activeIndex !== null) {
-                    const prev = fileItems.get(activeIndex);
-                    if (prev) prev.classList.remove('active');
+                // 更新激活状态
+                if (activeIndex) {
+                    const prevActive = docItems.get(activeIndex);
+                    if (prevActive) {
+                        prevActive.classList.remove('active');
+                    }
                 }
-                const current = fileItems.get(index);
-                if (current) current.classList.add('active');
+                
+                const currentItem = docItems.get(index);
+                if (currentItem) {
+                    currentItem.classList.add('active');
+                }
+                
                 activeIndex = index;
-
+                
+                // 如果缓存中有，直接显示
+                if (cache.has(index)) {
+                    const docInfo = cache.get(index);
+                    displayDocument(docInfo, index);
+                    return;
+                }
+                
                 // 显示加载状态
                 contentBody.innerHTML = '<div class="loading-spinner"><div class="spinner"></div></div>';
                 currentDocTitle.textContent = '加载中...';
                 docBadge.style.display = 'none';
-
-                // 如果已有缓存，直接显示
-                if (cache.has(index)) {
-                    const doc = cache.get(index);
-                    displayContent(doc);
-                    return;
-                }
-
-                // 请求文件
-                const padded = index.toString().padStart(2, '0');
-                try {
-                    const res = await fetch(`./${padded}.md`);
-                    if (!res.ok) throw new Error('文件不存在');
-                    const raw = await res.text();
-
-                    // 提取标题
-                    let title = `${padded}.md`;
-                    const h1 = raw.match(/^#\s+(.*)/m);
-                    if (h1) title = h1[1].trim();
-
-                    // 解析 Markdown
-                    const html = marked.parse(raw);
-
-                    const doc = { title, html, filename: `${padded}.md` };
-                    cache.set(index, doc);
-
-                    // 更新列表中的标题
-                    const fileItem = fileItems.get(index);
-                    if (fileItem) {
-                        fileItem.querySelector('.file-title').textContent = title.length > 28 ? title.slice(0,26)+'…' : title;
-                        fileItem.querySelector('.file-meta').textContent = `${padded}.md`;
+                
+                // 重新获取
+                const docInfo = await checkAndGetDocInfo(index);
+                if (docInfo && docInfo.exists) {
+                    cache.set(index, docInfo);
+                    displayDocument(docInfo, index);
+                    
+                    // 更新列表项标题（可能标题有变化）
+                    const item = docItems.get(index);
+                    if (item) {
+                        const titleEl = item.querySelector('.doc-title');
+                        const displayTitle = docInfo.title.length > 30 ? 
+                            docInfo.title.slice(0, 28) + '…' : docInfo.title;
+                        titleEl.textContent = displayTitle;
                     }
-
-                    displayContent(doc);
-                } catch (err) {
-                    contentBody.innerHTML = `<div class="welcome-message"><p style="color:#cf222e;">❌ 无法加载 ${padded}.md</p><p style="font-size:13px;">文件可能不存在或无法访问</p></div>`;
-                    currentDocTitle.textContent = '加载失败';
-                    docBadge.style.display = 'none';
+                } else {
+                    contentBody.innerHTML = `
+                        <div class="welcome-message">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                                <path d="M4 4h16v16H4z"/>
+                                <path d="M8 8h8M8 12h8M8 16h5"/>
+                            </svg>
+                            <h3>无法加载文档</h3>
+                            <p>文件可能已被移除或无法访问</p>
+                        </div>
+                    `;
+                    currentDocTitle.textContent = '选择文档';
                 }
             }
 
-            function displayContent(doc) {
-                currentDocTitle.textContent = doc.title;
-                docBadge.textContent = doc.filename;
+            // 显示文档内容
+            function displayDocument(docInfo, index) {
+                const padded = padIndex(index);
+                
+                currentDocTitle.textContent = docInfo.title;
+                docBadge.textContent = padded + '.md';
                 docBadge.style.display = 'inline-block';
-                contentBody.innerHTML = `<div class="markdown-body">${doc.html}</div>`;
-
-                // 代码高亮
+                
+                contentBody.innerHTML = `
+                    <div class="markdown-body">
+                        ${docInfo.html}
+                    </div>
+                `;
+                
+                // 高亮代码块
                 if (typeof hljs !== 'undefined') {
-                    document.querySelectorAll('.markdown-body pre code').forEach(block => {
-                        hljs.highlightElement(block);
+                    contentBody.querySelectorAll('pre code').forEach((block) => {
+                        if (!block.classList.contains('hljs')) {
+                            hljs.highlightElement(block);
+                        }
                     });
                 }
             }
 
-            // ESC 关闭图片查看器
-            document.addEventListener('keydown', e => {
-                if (e.key === 'Escape') imageViewer.classList.remove('active');
-            });
+            // HTML 转义
+            function escapeHtml(text) {
+                const div = document.createElement('div');
+                div.textContent = text;
+                return div.innerHTML;
+            }
 
             // 初始化
-            buildFileList();
-
-            // 可选：自动加载第一个文件（如果不希望自动加载，注释掉下面一行）
-            // loadDocument(1);
+            loadDocList();
         })();
     </script>
 </body>
