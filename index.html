@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
-    <title>MD 文档导航</title>
+    <title>LYM2394的导航</title>
     <!-- Markdown 解析 & 代码高亮 -->
     <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/atom-one-dark.min.css">
@@ -371,7 +371,7 @@
                         <path d="M4 4h16v16H4z"/>
                         <path d="M8 8h8M8 12h8M8 16h5"/>
                     </svg>
-                    文档目录
+                    导航列表
                 </h2>
                 <p>/ 目录下的 Markdown 文件</p>
             </div>
@@ -390,7 +390,7 @@
         <div class="content">
             <div class="content-header" id="contentHeader">
                 <div class="content-title">
-                    <span id="currentDocTitle">选择文档</span>
+                    <span id="currentDocTitle">选择导航文件</span>
                     <span class="content-badge" id="docBadge" style="display: none;"></span>
                 </div>
             </div>
@@ -400,7 +400,7 @@
                         <path d="M4 4h16v16H4z"/>
                         <path d="M8 8h8M8 12h8M8 16h5"/>
                     </svg>
-                    <h3>欢迎使用文档导航</h3>
+                    <h3>欢迎使用LYM2394的导航</h3>
                     <p>请从左侧选择一个 Markdown 文件开始阅读</p>
                 </div>
             </div>
@@ -485,7 +485,7 @@
 
             // 渲染文档列表（只显示存在的文件）
             async function loadDocList() {
-                docListEl.innerHTML = '<div class="empty-state"><p>正在扫描文档...</p></div>';
+                docListEl.innerHTML = '<div class="empty-state"><p>正在加载导航列表...</p></div>';
                 
                 const checks = [];
                 for (let i = 1; i <= TOTAL_FILES; i++) {
@@ -601,11 +601,11 @@
                                 <path d="M4 4h16v16H4z"/>
                                 <path d="M8 8h8M8 12h8M8 16h5"/>
                             </svg>
-                            <h3>无法加载文档</h3>
+                            <h3>无法加载导航</h3>
                             <p>文件可能已被移除或无法访问</p>
                         </div>
                     `;
-                    currentDocTitle.textContent = '选择文档';
+                    currentDocTitle.textContent = '选择导航';
                 }
             }
 
@@ -644,5 +644,6 @@
             loadDocList();
         })();
     </script>
+<script defer src="https://static.cloudflareinsights.com/beacon.min.js/v8c78df7c7c0f484497ecbca7046644da1771523124516" integrity="sha512-8DS7rgIrAmghBFwoOTujcf6D9rXvH8xm8JQ1Ja01h9QX8EzXldiszufYa4IFfKdLUKTTrnSFXLDkUEOTrZQ8Qg==" data-cf-beacon='{"version":"2024.11.0","token":"65515a08daec4c2a9d7afaa9a49f034a","r":1,"server_timing":{"name":{"cfCacheStatus":true,"cfEdge":true,"cfExtPri":true,"cfL4":true,"cfOrigin":true,"cfSpeedBrain":true},"location_startswith":null}}' crossorigin="anonymous"></script>
 </body>
 </html>
