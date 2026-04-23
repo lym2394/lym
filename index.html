@@ -506,9 +506,10 @@
                 // 自定义渲染器以支持视频和增强图片
                 const renderer = new marked.Renderer();
                 
-                // 保存原始的图片渲染
+                // 保存原始的渲染函数
                 const originalImage = renderer.image.bind(renderer);
                 const originalLink = renderer.link.bind(renderer);
+                const originalHtml = renderer.html.bind(renderer);
                 
                 // 自定义链接渲染（检测视频链接）
                 renderer.link = function(href, title, text) {
@@ -535,6 +536,30 @@
                     return `<img src="${imgSrc}"${altAttr}${titleAttr} loading="lazy" onclick="window.openImageViewer('${imgSrc}')" onerror="this.style.display='none'">`;
                 };
 
+                // 自定义HTML渲染（处理img标签、视频等）
+                renderer.html = function(html) {
+                    // 处理 img 标签（如 <img width="1920" height="1080" alt="Image" src="..." />）
+                    if (html.includes('<img')) {
+                        return processHtmlImgTag(html);
+                    }
+                    
+                    // 检测iframe标签（可能包含视频）
+                    if (html.includes('<iframe') && (html.includes('youtube') || html.includes('vimeo') || html.includes('bilibili'))) {
+                        const srcMatch = html.match(/src=["']([^"']+)["']/);
+                        if (srcMatch) {
+                            const src = srcMatch[1];
+                            return createVideoEmbed(src, '');
+                        }
+                    }
+                    
+                    // 检测video标签
+                    if (html.includes('<video')) {
+                        return processHtmlVideoTag(html);
+                    }
+                    
+                    return html;
+                };
+
                 // 自定义段落渲染（检测单独的视频链接）
                 renderer.paragraph = function(text) {
                     // 检测是否为视频URL
@@ -549,23 +574,65 @@
                         return createVideoEmbed(youtubeMatch[1], '');
                     }
                     
+                    // 检测是否为HTML img标签
+                    if (text.includes('<img')) {
+                        return processHtmlImgTag(text);
+                    }
+                    
                     return `<p>${text}</p>`;
                 };
 
-                // 自定义HTML渲染（保留原始HTML，支持iframe等）
-                renderer.html = function(html) {
-                    // 检测iframe标签（可能包含视频）
-                    if (html.includes('<iframe') && (html.includes('youtube') || html.includes('vimeo') || html.includes('bilibili'))) {
-                        const srcMatch = html.match(/src=["']([^"']+)["']/);
-                        if (srcMatch) {
-                            const src = srcMatch[1];
-                            return createVideoEmbed(src, '');
-                        }
-                    }
-                    return html;
-                };
-
                 marked.setOptions({ renderer: renderer });
+            }
+
+            // 处理HTML img标签
+            function processHtmlImgTag(html) {
+                // 匹配img标签及其属性
+                const imgMatch = html.match(/<img\s+([^>]*?)>/i);
+                if (!imgMatch) return html;
+                
+                const attributes = imgMatch[1];
+                
+                // 提取src
+                const srcMatch = attributes.match(/src=["']([^"']+)["']/i);
+                if (!srcMatch) return html;
+                
+                let imgSrc = srcMatch[1];
+                
+                // 提取其他属性
+                const widthMatch = attributes.match(/width=["'](\d+)["']/i);
+                const heightMatch = attributes.match(/height=["'](\d+)["']/i);
+                const altMatch = attributes.match(/alt=["']([^"']*)["']/i);
+                const titleMatch = attributes.match(/title=["']([^"']*)["']/i);
+                
+                const alt = altMatch ? altMatch[1] : '';
+                const title = titleMatch ? titleMatch[1] : '';
+                const width = widthMatch ? widthMatch[1] : '';
+                const height = heightMatch ? heightMatch[1] : '';
+                
+                // 构建新的img标签
+                let imgTag = '<img ';
+                imgTag += `src="${imgSrc}" `;
+                if (alt) imgTag += `alt="${alt}" `;
+                if (title) imgTag += `title="${title}" `;
+                if (width) imgTag += `width="${width}" `;
+                if (height) imgTag += `height="${height}" `;
+                imgTag += 'loading="lazy" ';
+                imgTag += `onclick="window.openImageViewer('${imgSrc}')" `;
+                imgTag += 'onerror="this.style.display=\'none\'" ';
+                imgTag += '/>';
+                
+                return imgTag;
+            }
+
+            // 处理HTML video标签
+            function processHtmlVideoTag(html) {
+                const srcMatch = html.match(/src=["']([^"']+)["']/i);
+                if (srcMatch) {
+                    const src = srcMatch[1];
+                    return createLocalVideo(src);
+                }
+                return html;
             }
 
             // 判断是否为视频URL
