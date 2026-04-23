@@ -3,670 +3,646 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
-    <title>导航 · 百篇文库</title>
+    <title>MD 文档导航</title>
     <!-- Markdown 解析 & 代码高亮 -->
     <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/atom-one-dark.min.css">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
-    <!-- 优雅的基础样式 -->
     <style>
         * {
-            box-sizing: border-box;
             margin: 0;
+            padding: 0;
+            box-sizing: border-box;
         }
 
         body {
-            font-family: system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', sans-serif;
-            background: #f8fafc;
-            color: #0f172a;
-            line-height: 1.5;
-            padding: 20px;
-            min-height: 100vh;
-            display: flex;
-            flex-direction: column;
-        }
-
-        .app-container {
-            max-width: 1400px;
-            margin: 0 auto;
-            width: 100%;
-            background: white;
-            border-radius: 28px;
-            box-shadow: 0 20px 35px -8px rgba(0,0,0,0.07), 0 8px 10px -6px rgba(0,0,0,0.03);
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue', sans-serif;
+            background: #f9fafb;
+            color: #1e293b;
+            height: 100vh;
             overflow: hidden;
+        }
+
+        .app {
+            display: flex;
+            height: 100vh;
+            background: #ffffff;
+        }
+
+        /* 左侧边栏 - 文档列表 */
+        .sidebar {
+            width: 320px;
+            background: #f8fafc;
+            border-right: 1px solid #e2e8f0;
             display: flex;
             flex-direction: column;
-            border: 1px solid #e9eef3;
+            transition: all 0.2s ease;
         }
 
-        /* 头部说明 */
-        .app-header {
-            padding: 1.5rem 2rem 0.8rem 2rem;
-            border-bottom: 1px solid #eef2f6;
+        .sidebar-header {
+            padding: 20px 20px 16px 20px;
+            border-bottom: 1px solid #e2e8f0;
         }
 
-        .app-header h1 {
+        .sidebar-header h2 {
+            font-size: 1.25rem;
             font-weight: 600;
-            font-size: 1.9rem;
-            letter-spacing: -0.01em;
+            color: #0f172a;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 4px;
+        }
+
+        .sidebar-header p {
+            font-size: 0.85rem;
+            color: #64748b;
+            margin-top: 4px;
+        }
+
+        .doc-list {
+            flex: 1;
+            overflow-y: auto;
+            padding: 8px 0;
+            scrollbar-width: thin;
+            scrollbar-color: #cbd5e1 #f1f5f9;
+        }
+
+        .doc-list::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        .doc-list::-webkit-scrollbar-track {
+            background: #f1f5f9;
+        }
+
+        .doc-list::-webkit-scrollbar-thumb {
+            background: #cbd5e1;
+            border-radius: 3px;
+        }
+
+        .doc-list::-webkit-scrollbar-thumb:hover {
+            background: #94a3b8;
+        }
+
+        .doc-item {
+            padding: 12px 20px;
+            margin: 2px 8px;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.15s ease;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            color: #334155;
+            font-size: 0.95rem;
+            border-left: 3px solid transparent;
+        }
+
+        .doc-item:hover {
+            background: #eef2ff;
+            color: #1e293b;
+        }
+
+        .doc-item.active {
+            background: #e0e7ff;
+            color: #1e40af;
+            border-left-color: #3b82f6;
+            font-weight: 500;
+        }
+
+        .doc-icon {
+            width: 20px;
+            height: 20px;
+            opacity: 0.7;
+            flex-shrink: 0;
+        }
+
+        .doc-info {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .doc-title {
+            font-weight: 500;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .doc-filename {
+            font-size: 0.75rem;
+            color: #64748b;
+            margin-top: 2px;
+        }
+
+        .doc-item.active .doc-filename {
+            color: #3b82f6;
+        }
+
+        .empty-state {
+            padding: 40px 20px;
+            text-align: center;
+            color: #94a3b8;
+            font-size: 0.9rem;
+        }
+
+        .empty-state svg {
+            width: 48px;
+            height: 48px;
+            margin-bottom: 16px;
+            opacity: 0.5;
+        }
+
+        /* 右侧内容区 */
+        .content {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            background: #ffffff;
+            overflow: hidden;
+        }
+
+        .content-header {
+            padding: 16px 32px;
+            border-bottom: 1px solid #e2e8f0;
+            background: #ffffff;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .content-title {
+            font-size: 1.1rem;
+            font-weight: 500;
+            color: #0f172a;
             display: flex;
             align-items: center;
             gap: 10px;
-            color: #0b1e33;
         }
 
-        .app-header h1 span {
-            background: #eef6ff;
-            color: #0369a1;
-            font-size: 1rem;
-            font-weight: 500;
+        .content-badge {
+            background: #dbeafe;
+            color: #1e40af;
             padding: 2px 10px;
-            border-radius: 30px;
-            margin-left: 8px;
-        }
-
-        .subtitle {
-            color: #546e7a;
-            margin-top: 6px;
-            font-size: 0.95rem;
-            display: flex;
-            align-items: center;
-            gap: 16px;
-            flex-wrap: wrap;
-        }
-
-        /* 下拉选择器 + 辅助控件 */
-        .toolbar {
-            padding: 0.8rem 2rem 0.5rem 2rem;
-            background: #fafcff;
-            border-bottom: 1px solid #e2e8f0;
-            display: flex;
-            align-items: center;
-            gap: 16px;
-            flex-wrap: wrap;
-        }
-
-        .dropdown-label {
+            border-radius: 12px;
+            font-size: 0.75rem;
             font-weight: 500;
-            color: #1e4460;
-            font-size: 0.9rem;
         }
 
-        .doc-select {
-            padding: 0.5rem 2rem 0.5rem 1rem;
-            font-size: 1rem;
-            border: 1.5px solid #cfdde9;
-            border-radius: 40px;
-            background: white;
-            color: #0b1e33;
-            font-weight: 500;
-            cursor: pointer;
-            outline: none;
-            transition: all 0.15s;
-            min-width: 240px;
-            appearance: none;
-            background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="%233b6e9e" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>');
-            background-repeat: no-repeat;
-            background-position: right 1rem center;
-            background-size: 1.1rem;
-        }
-
-        .doc-select:hover, .doc-select:focus {
-            border-color: #1e88e5;
-            box-shadow: 0 0 0 3px rgba(30,136,229,0.1);
-        }
-
-        .badge-info {
-            margin-left: auto;
-            color: #2c5f7b;
-            background: #e9f2fa;
-            padding: 4px 12px;
-            border-radius: 24px;
-            font-size: 0.85rem;
-        }
-
-        /* 选项卡区域 —— 横向滚动，显示标题 */
-        .tabs-wrapper {
-            padding: 0.5rem 1.5rem 0.25rem 1.5rem;
-            background: white;
-            border-bottom: 1px solid #e6edf4;
-        }
-
-        .tabs-container {
-            display: flex;
-            flex-wrap: wrap;
-            align-items: center;
-            gap: 6px 8px;
-            max-height: 200px;
+        .content-body {
+            flex: 1;
             overflow-y: auto;
-            padding: 10px 2px 6px 2px;
-            scrollbar-width: thin;
-            scrollbar-color: #bcd0e0 #f1f7fd;
-        }
-
-        .tabs-container::-webkit-scrollbar {
-            height: 5px;
-            width: 5px;
-        }
-        .tabs-container::-webkit-scrollbar-thumb {
-            background: #b0c8da;
-            border-radius: 10px;
-        }
-
-        /* 选项卡卡片样式 */
-        .tab-item {
-            padding: 0.45rem 1.2rem;
-            background: #f7faff;
-            border-radius: 40px;
-            font-size: 0.9rem;
-            font-weight: 500;
-            color: #1e4460;
-            cursor: pointer;
-            border: 1px solid #dee9f2;
-            transition: all 0.12s;
-            white-space: nowrap;
-            box-shadow: 0 1px 2px rgba(0,0,0,0.01);
-            user-select: none;
-        }
-
-        .tab-item:hover {
-            background: #e6f0ff;
-            border-color: #90c0e0;
-            color: #025091;
-            transform: translateY(-1px);
-        }
-
-        .tab-item.active {
-            background: #1a5d9c;
-            border-color: #1a5d9c;
-            color: white;
-            box-shadow: 0 6px 12px -6px rgba(20,80,140,0.28);
-        }
-
-        .tab-item.loading-title {
-            opacity: 0.7;
-            font-style: italic;
-        }
-
-        /* 文章内容展示区 */
-        .content-panel {
-            padding: 2rem 2.2rem 2.8rem 2.2rem;
-            background: #ffffff;
-            min-height: 420px;
+            padding: 32px 48px;
+            scroll-behavior: smooth;
         }
 
         .markdown-body {
-            font-size: 1rem;
             max-width: 900px;
             margin: 0 auto;
-            word-break: break-word;
+            line-height: 1.7;
         }
 
-        /* 加载/占位状态 */
-        .loading-placeholder {
+        /* Markdown 样式优化 */
+        .markdown-body h1 {
+            font-size: 2rem;
+            font-weight: 600;
+            margin-top: 0;
+            margin-bottom: 1rem;
+            padding-bottom: 0.5rem;
+            border-bottom: 1px solid #e2e8f0;
+            color: #0f172a;
+        }
+
+        .markdown-body h2 {
+            font-size: 1.5rem;
+            font-weight: 600;
+            margin-top: 2rem;
+            margin-bottom: 1rem;
+            color: #1e293b;
+        }
+
+        .markdown-body h3 {
+            font-size: 1.25rem;
+            font-weight: 600;
+            margin-top: 1.5rem;
+            margin-bottom: 0.75rem;
+            color: #334155;
+        }
+
+        .markdown-body p {
+            margin-bottom: 1rem;
+            color: #334155;
+        }
+
+        .markdown-body code {
+            background: #f1f5f9;
+            padding: 0.2rem 0.4rem;
+            border-radius: 4px;
+            font-size: 0.9em;
+            color: #1e293b;
+        }
+
+        .markdown-body pre {
+            background: #1e293b;
+            border-radius: 8px;
+            padding: 1rem;
+            overflow-x: auto;
+            margin: 1.5rem 0;
+        }
+
+        .markdown-body pre code {
+            background: transparent;
+            padding: 0;
+            color: #e2e8f0;
+        }
+
+        .markdown-body blockquote {
+            border-left: 4px solid #3b82f6;
+            padding-left: 1rem;
+            margin: 1rem 0;
+            color: #64748b;
+            font-style: italic;
+        }
+
+        .markdown-body ul, .markdown-body ol {
+            margin: 1rem 0;
+            padding-left: 2rem;
+        }
+
+        .markdown-body li {
+            margin: 0.5rem 0;
+        }
+
+        .markdown-body a {
+            color: #3b82f6;
+            text-decoration: none;
+        }
+
+        .markdown-body a:hover {
+            text-decoration: underline;
+        }
+
+        .markdown-body table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 1rem 0;
+        }
+
+        .markdown-body th, .markdown-body td {
+            border: 1px solid #e2e8f0;
+            padding: 0.75rem;
+            text-align: left;
+        }
+
+        .markdown-body th {
+            background: #f8fafc;
+            font-weight: 600;
+        }
+
+        .welcome-message {
             display: flex;
             flex-direction: column;
             align-items: center;
             justify-content: center;
-            padding: 50px 20px;
-            color: #637e96;
+            height: 100%;
+            text-align: center;
+            color: #94a3b8;
+        }
+
+        .welcome-message svg {
+            width: 80px;
+            height: 80px;
+            margin-bottom: 20px;
+            opacity: 0.4;
+        }
+
+        .welcome-message h3 {
+            font-size: 1.5rem;
+            font-weight: 500;
+            margin-bottom: 8px;
+            color: #64748b;
+        }
+
+        .welcome-message p {
+            color: #94a3b8;
+        }
+
+        .loading-spinner {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            height: 100%;
         }
 
         .spinner {
-            width: 36px;
-            height: 36px;
-            border: 3px solid #dee9f2;
-            border-top-color: #1e6eb5;
+            width: 40px;
+            height: 40px;
+            border: 3px solid #e2e8f0;
+            border-top-color: #3b82f6;
             border-radius: 50%;
             animation: spin 0.8s infinite linear;
-            margin-bottom: 16px;
         }
 
-        @keyframes spin { 0% { transform: rotate(0); } 100% { transform: rotate(360deg); } }
-
-        .empty-message {
-            text-align: center;
-            padding: 40px;
-            background: #fbfdff;
-            border-radius: 20px;
-            color: #4f6f8c;
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
         }
 
-        /* markdown 内部样式微调 */
-        .markdown-body {
-            box-sizing: border-box;
-            min-width: 200px;
-        }
-        .markdown-body pre code {
-            border-radius: 12px;
-            padding: 1.2rem !important;
-            background: #f6f8fa !important;
-        }
-        .footer-note {
-            margin-top: 10px;
-            text-align: right;
-            font-size: 0.8rem;
-            color: #7c95aa;
-            border-top: 1px dashed #d7e2eb;
-            padding-top: 16px;
+        /* 移动端适配 */
+        @media (max-width: 768px) {
+            .sidebar {
+                width: 280px;
+            }
+            
+            .content-body {
+                padding: 24px 20px;
+            }
         }
     </style>
 </head>
 <body>
-<div class="app-container">
-    <div class="app-header">
-        <h1>
-            📚 百篇集 · 导航
-            <span>01.md ~ 100.md</span>
-        </h1>
-        <div class="subtitle">
-            <span>📄 选项卡显示文章标题 · 下拉框选择即刻阅读</span>
+    <div class="app">
+        <!-- 左侧文档列表 -->
+        <div class="sidebar">
+            <div class="sidebar-header">
+                <h2>
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M4 4h16v16H4z"/>
+                        <path d="M8 8h8M8 12h8M8 16h5"/>
+                    </svg>
+                    文档目录
+                </h2>
+                <p>/ 目录下的 Markdown 文件</p>
+            </div>
+            <div class="doc-list" id="docList">
+                <div class="empty-state">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                        <path d="M4 4h16v16H4z"/>
+                        <path d="M8 8h8M8 12h8M8 16h5"/>
+                    </svg>
+                    <p>正在检测 MD 文件...</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- 右侧内容区 -->
+        <div class="content">
+            <div class="content-header" id="contentHeader">
+                <div class="content-title">
+                    <span id="currentDocTitle">选择文档</span>
+                    <span class="content-badge" id="docBadge" style="display: none;"></span>
+                </div>
+            </div>
+            <div class="content-body" id="contentBody">
+                <div class="welcome-message">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                        <path d="M4 4h16v16H4z"/>
+                        <path d="M8 8h8M8 12h8M8 16h5"/>
+                    </svg>
+                    <h3>欢迎使用文档导航</h3>
+                    <p>请从左侧选择一个 Markdown 文件开始阅读</p>
+                </div>
+            </div>
         </div>
     </div>
 
-    <!-- 工具栏：下拉框（点击/选择显示文章内容） -->
-    <div class="toolbar">
-        <span class="dropdown-label">🔽 下拉快速跳转</span>
-        <select id="docSelect" class="doc-select" aria-label="选择文档 (01-100)">
-            <!-- 由js动态渲染选项 -->
-        </select>
-        <span class="badge-info" id="statusBadge">📌 共100篇</span>
-    </div>
+    <script>
+        (function() {
+            "use strict";
 
-    <!-- 选项卡区域 -->
-    <div class="tabs-wrapper">
-        <div class="tabs-container" id="tabsContainer">
-            <!-- 动态生成01～100选项卡 -->
-        </div>
-    </div>
-
-    <!-- 文章内容展示区 -->
-    <div class="content-panel" id="contentPanel">
-        <div class="loading-placeholder">
-            <div class="spinner"></div>
-            <div>正在准备文档导航…</div>
-        </div>
-    </div>
-    <div class="footer-note" style="padding: 0 2rem 1.5rem 2rem;">
-        ⚡ 点击上方选项卡 / 下拉框 — 内容实时解析自 / 目录下的 .md 文件
-    </div>
-</div>
-
-<script>
-    (function(){
-        "use strict";
-
-        // ----- 配置 marked + highlight -----
-        if (typeof marked !== 'undefined') {
-            marked.setOptions({
-                highlight: function(code, lang) {
-                    if (typeof hljs !== 'undefined' && lang && hljs.getLanguage(lang)) {
-                        try {
-                            return hljs.highlight(code, { language: lang }).value;
-                        } catch (e) {}
-                    }
-                    return code;
-                },
-                breaks: true,
-                gfm: true
-            });
-        }
-
-        // ----- 全局常量 & 状态 -----
-        const TOTAL_DOCS = 100;
-        const docIndices = Array.from({ length: TOTAL_DOCS }, (_, i) => i + 1); // 1..100
-
-        // 核心缓存: 存储已获取的 markdown 原始文本, 解析后的HTML, 标题
-        const cache = new Map(); // key: index(number) => { raw: string, html: string, title: string }
-
-        // UI元素
-        const tabsContainer = document.getElementById('tabsContainer');
-        const docSelect = document.getElementById('docSelect');
-        const contentPanel = document.getElementById('contentPanel');
-        const statusBadge = document.getElementById('statusBadge');
-
-        // 保存所有tab DOM 引用 (方便更新标题)
-        const tabElements = new Map(); // index -> DOM element
-        // 保存下拉选项引用
-        const optionElements = new Map(); // index -> option DOM
-
-        // 当前激活的文档索引 (1~100)
-        let activeIndex = 1;
-
-        // 标志：是否正在加载中 (避免重复触发)
-        let isLoading = false;
-
-        // ----- 辅助函数：补零 (01,02...100) -----
-        function padIndex(i) {
-            return i.toString().padStart(2, '0');
-        }
-
-        // ----- 从markdown提取一级标题 (# 开头) -----
-        function extractTitleFromMarkdown(mdText) {
-            if (!mdText) return null;
-            const match = mdText.match(/^#\s+(.*?)(?:\r?\n|$)/m);
-            if (match && match[1]) {
-                return match[1].trim();
-            }
-            return null;
-        }
-
-        // ----- 生成默认/后备内容 (当fetch失败或者文件不存在时，仍可展示示例，同时符合“由.md决定”的设计意图) -----
-        function generateFallbackContent(index) {
-            const padded = padIndex(index);
-            // 模拟不同的标题，模拟真实文章感觉
-            const titles = [
-                `文档 ${padded} · 概述`, `快速上手 ${padded}`, `指南 #${index}`, 
-                `API 参考 (${padded})`, `示例与注解 ${padded}`, `第${index}章 核心概念`
-            ];
-            const chosenTitle = titles[index % titles.length];
-            return `# ${chosenTitle}\n\n> 本文件为 \`${padded}.md\` 的示例内容。实际使用时请将真实 Markdown 文件放置于根目录。\n\n## 简介\n\n这是第 ${index} 号文档。您可以通过上方选项卡或下拉框切换。\n\n### 代码示例\n\`\`\`javascript\n// 来自 ${padded}.md 的演示\nconst greeting = "Hello, 文档 ${index}";\nconsole.log(greeting);\n\`\`\`\n\n- 条目 A\n- 条目 B\n\n当前索引: **${index}** / 100。\n\n*（若 ${padded}.md 真实存在，将自动渲染其内容。）*`;
-        }
-
-        // ----- 通用 fetch + 解析 markdown (带缓存) -----
-        async function fetchAndParseMarkdown(index) {
-            const padded = padIndex(index);
-            const url = `./${padded}.md`;   // 相对于当前路径
-
-            // 如果缓存中有，直接返回
-            if (cache.has(index)) {
-                return cache.get(index);
-            }
-
-            let rawMarkdown = '';
-            let usedFallback = false;
-
-            try {
-                const response = await fetch(url);
-                if (!response.ok) {
-                    throw new Error(`HTTP ${response.status}`);
-                }
-                rawMarkdown = await response.text();
-                // 如果内容为空也当作 fallback 处理 (避免空白)
-                if (!rawMarkdown.trim()) {
-                    throw new Error('Empty file');
-                }
-            } catch (error) {
-                console.warn(`⚠️ 无法获取 ${padded}.md , 使用内置示例内容 (${error.message})`);
-                rawMarkdown = generateFallbackContent(index);
-                usedFallback = true;
-            }
-
-            // 提取标题 (优先从markdown里的一级标题)
-            let title = extractTitleFromMarkdown(rawMarkdown);
-            if (!title) {
-                // 如果没有一级标题，就用编号作为标题
-                title = `文档 ${padIndex(index)}`;
-            }
-
-            // 使用 marked 解析 HTML
-            let htmlContent = '';
+            // 配置 marked
             if (typeof marked !== 'undefined') {
-                htmlContent = marked.parse(rawMarkdown);
-            } else {
-                // 极低概率fallback
-                htmlContent = `<pre>${escapeHtml(rawMarkdown)}</pre>`;
+                marked.setOptions({
+                    highlight: function(code, lang) {
+                        if (typeof hljs !== 'undefined' && lang && hljs.getLanguage(lang)) {
+                            try {
+                                return hljs.highlight(code, { language: lang }).value;
+                            } catch (e) {}
+                        }
+                        return code;
+                    },
+                    breaks: true,
+                    gfm: true
+                });
             }
 
-            const data = {
-                raw: rawMarkdown,
-                html: htmlContent,
-                title: title,
-                usedFallback: usedFallback
-            };
-            cache.set(index, data);
-            return data;
-        }
+            const TOTAL_FILES = 100;
+            const docListEl = document.getElementById('docList');
+            const contentBody = document.getElementById('contentBody');
+            const currentDocTitle = document.getElementById('currentDocTitle');
+            const docBadge = document.getElementById('docBadge');
+            
+            let activeIndex = null;
+            const docItems = new Map(); // index -> DOM element
+            const cache = new Map(); // index -> { title, html, filename }
 
-        // 简单的转义 (用于万一marked失效)
-        function escapeHtml(text) {
-            const div = document.createElement('div');
-            div.textContent = text;
-            return div.innerHTML;
-        }
+            function padIndex(i) {
+                return i.toString().padStart(2, '0');
+            }
 
-        // ----- 更新UI：选项卡激活样式 + 下拉框同步 + 渲染内容区-----
-        async function loadDocument(index) {
-            if (index === activeIndex && cache.has(index)) {
-                // 如果已经是当前文档并且有缓存，只需刷新高亮？但内容不变，也可以直接渲染一次
-                // 但为了防止重复渲染，检查一下内容区域是否已经是当前文档。
-                const currentData = cache.get(index);
-                if (currentData) {
-                    renderContentToPanel(currentData.html, currentData.title, index);
-                    updateActiveTabUI(index);
-                    if (docSelect.value !== String(index)) {
-                        docSelect.value = String(index);
+            // 提取 Markdown 标题和检测文件是否存在
+            async function checkAndGetDocInfo(index) {
+                const padded = padIndex(index);
+                const url = `./${padded}.md`;
+                
+                try {
+                    const response = await fetch(url, { method: 'HEAD' });
+                    if (!response.ok) {
+                        return null; // 文件不存在
                     }
+                    
+                    // 文件存在，获取内容
+                    const contentResponse = await fetch(url);
+                    const rawMarkdown = await contentResponse.text();
+                    
+                    // 提取标题
+                    let title = null;
+                    const match = rawMarkdown.match(/^#\s+(.*?)(?:\r?\n|$)/m);
+                    if (match && match[1]) {
+                        title = match[1].trim();
+                    }
+                    
+                    // 解析 HTML
+                    let html = '';
+                    if (typeof marked !== 'undefined') {
+                        html = marked.parse(rawMarkdown);
+                    } else {
+                        html = `<pre>${rawMarkdown}</pre>`;
+                    }
+                    
+                    return {
+                        title: title || `${padded}.md`,
+                        html: html,
+                        filename: `${padded}.md`,
+                        exists: true
+                    };
+                } catch (error) {
+                    console.warn(`无法访问 ${padded}.md:`, error);
+                    return null;
                 }
-                return;
             }
 
-            // 显示加载状态（如果还没有缓存）
-            if (!cache.has(index)) {
-                contentPanel.innerHTML = `
-                    <div class="loading-placeholder">
-                        <div class="spinner"></div>
-                        <div>正在读取 ${padIndex(index)}.md …</div>
+            // 渲染文档列表（只显示存在的文件）
+            async function loadDocList() {
+                docListEl.innerHTML = '<div class="empty-state"><p>正在扫描文档...</p></div>';
+                
+                const checks = [];
+                for (let i = 1; i <= TOTAL_FILES; i++) {
+                    checks.push(checkAndGetDocInfo(i));
+                }
+                
+                const results = await Promise.all(checks);
+                
+                // 清空并重新构建列表
+                docListEl.innerHTML = '';
+                let hasDocs = false;
+                
+                results.forEach((docInfo, idx) => {
+                    const index = idx + 1;
+                    if (docInfo && docInfo.exists) {
+                        hasDocs = true;
+                        cache.set(index, docInfo);
+                        
+                        const docItem = createDocItem(index, docInfo);
+                        docListEl.appendChild(docItem);
+                        docItems.set(index, docItem);
+                    }
+                });
+                
+                if (!hasDocs) {
+                    docListEl.innerHTML = `
+                        <div class="empty-state">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                                <path d="M4 4h16v16H4z"/>
+                                <path d="M8 8h8M8 12h8M8 16h5"/>
+                            </svg>
+                            <p>未检测到 MD 文件</p>
+                            <p style="margin-top: 8px; font-size: 0.85rem;">请在根目录放置 01.md ~ 100.md</p>
+                        </div>
+                    `;
+                }
+            }
+
+            // 创建文档列表项
+            function createDocItem(index, docInfo) {
+                const div = document.createElement('div');
+                div.className = 'doc-item';
+                div.dataset.index = index;
+                
+                const displayTitle = docInfo.title.length > 30 ? 
+                    docInfo.title.slice(0, 28) + '…' : docInfo.title;
+                
+                div.innerHTML = `
+                    <svg class="doc-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M4 4h16v16H4z"/>
+                        <path d="M8 8h8M8 12h8M8 16h5"/>
+                    </svg>
+                    <div class="doc-info">
+                        <div class="doc-title">${escapeHtml(displayTitle)}</div>
+                        <div class="doc-filename">${docInfo.filename}</div>
                     </div>
                 `;
+                
+                div.addEventListener('click', () => {
+                    loadDocument(index);
+                });
+                
+                return div;
             }
 
-            isLoading = true;
-            try {
-                // 获取/解析数据
-                const data = await fetchAndParseMarkdown(index);
+            // 加载并显示文档
+            async function loadDocument(index) {
+                // 更新激活状态
+                if (activeIndex) {
+                    const prevActive = docItems.get(activeIndex);
+                    if (prevActive) {
+                        prevActive.classList.remove('active');
+                    }
+                }
                 
-                // 更新标题到对应tab 和 下拉选项
-                updateTabTitle(index, data.title);
-                updateOptionTitle(index, data.title);
-
-                // 渲染主要内容
-                renderContentToPanel(data.html, data.title, index);
-
-                // 设置激活索引 & UI状态
+                const currentItem = docItems.get(index);
+                if (currentItem) {
+                    currentItem.classList.add('active');
+                }
+                
                 activeIndex = index;
-                updateActiveTabUI(index);
                 
-                // 确保下拉框值同步
-                if (docSelect.value !== String(index)) {
-                    docSelect.value = String(index);
+                // 如果缓存中有，直接显示
+                if (cache.has(index)) {
+                    const docInfo = cache.get(index);
+                    displayDocument(docInfo, index);
+                    return;
                 }
-
-                // 更新底部状态 (指示是否使用了后备)
-                if (data.usedFallback) {
-                    statusBadge.textContent = `⚠️ 示例预览 · ${padIndex(index)}/100`;
-                } else {
-                    statusBadge.textContent = `📄 已加载 · ${padIndex(index)}.md`;
-                }
-
-            } catch (err) {
-                console.error('加载文档失败', err);
-                contentPanel.innerHTML = `<div class="empty-message">❌ 加载失败: 无法解析文档 ${index}</div>`;
-                statusBadge.textContent = `❌ 错误`;
-            } finally {
-                isLoading = false;
-            }
-        }
-
-        // 渲染markdown HTML到内容区
-        function renderContentToPanel(html, title, index) {
-            const padded = padIndex(index);
-            const headerInfo = `<div style="margin-bottom: 18px; border-bottom: 1px solid #ecf3fa; padding-bottom: 10px; display: flex; align-items: baseline; gap: 10px;"><h2 style="font-weight: 550; color: #134980; margin:0;">${escapeHtml(title)}</h2><span style="color:#7898b0; font-size:0.9rem;">${padded}.md</span></div>`;
-            
-            contentPanel.innerHTML = `
-                <div class="markdown-body">
-                    ${headerInfo}
-                    ${html}
-                </div>
-            `;
-            
-            // 高亮代码块 (marked里的highlight已经处理过，但动态插入之后有些可能需要手动调用hljs)
-            if (typeof hljs !== 'undefined') {
-                contentPanel.querySelectorAll('pre code').forEach((block) => {
-                    // 避免重复高亮
-                    if (!block.classList.contains('hljs')) {
-                        hljs.highlightElement(block);
+                
+                // 显示加载状态
+                contentBody.innerHTML = '<div class="loading-spinner"><div class="spinner"></div></div>';
+                currentDocTitle.textContent = '加载中...';
+                docBadge.style.display = 'none';
+                
+                // 重新获取
+                const docInfo = await checkAndGetDocInfo(index);
+                if (docInfo && docInfo.exists) {
+                    cache.set(index, docInfo);
+                    displayDocument(docInfo, index);
+                    
+                    // 更新列表项标题（可能标题有变化）
+                    const item = docItems.get(index);
+                    if (item) {
+                        const titleEl = item.querySelector('.doc-title');
+                        const displayTitle = docInfo.title.length > 30 ? 
+                            docInfo.title.slice(0, 28) + '…' : docInfo.title;
+                        titleEl.textContent = displayTitle;
                     }
-                });
-            }
-        }
-
-        // 更新指定索引的选项卡文字
-        function updateTabTitle(index, title) {
-            const tab = tabElements.get(index);
-            if (tab) {
-                // 简略显示，如果标题过长可以截断
-                let displayTitle = title.length > 22 ? title.slice(0, 20) + '…' : title;
-                tab.textContent = displayTitle;
-                tab.classList.remove('loading-title');
-                tab.setAttribute('title', `${padIndex(index)}.md · ${title}`);
-            }
-        }
-
-        // 更新下拉选项中对应项的文本
-        function updateOptionTitle(index, title) {
-            const opt = optionElements.get(index);
-            if (opt) {
-                let displayTitle = title.length > 35 ? title.slice(0, 32) + '…' : title;
-                opt.textContent = `${padIndex(index)} · ${displayTitle}`;
-            }
-        }
-
-        // 高亮当前激活的tab，移除其他的active类
-        function updateActiveTabUI(index) {
-            tabElements.forEach((tab, idx) => {
-                if (idx === index) {
-                    tab.classList.add('active');
-                    // 保证可见 (滚动到附近)
-                    tab.scrollIntoView({ block: 'nearest', inline: 'center', behavior: 'smooth' });
                 } else {
-                    tab.classList.remove('active');
+                    contentBody.innerHTML = `
+                        <div class="welcome-message">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                                <path d="M4 4h16v16H4z"/>
+                                <path d="M8 8h8M8 12h8M8 16h5"/>
+                            </svg>
+                            <h3>无法加载文档</h3>
+                            <p>文件可能已被移除或无法访问</p>
+                        </div>
+                    `;
+                    currentDocTitle.textContent = '选择文档';
                 }
-            });
-        }
-
-        // ----- 构建初始UI：选项卡和下拉框 (先展示编号，标题异步更新)-----
-        function buildNavigation() {
-            // 清空容器
-            tabsContainer.innerHTML = '';
-            docSelect.innerHTML = '';
-            tabElements.clear();
-            optionElements.clear();
-
-            // 创建100个选项卡 + 下拉option
-            for (let i = 1; i <= TOTAL_DOCS; i++) {
-                const padded = padIndex(i);
-                
-                // ---- 选项卡 ----
-                const tab = document.createElement('div');
-                tab.className = 'tab-item loading-title';
-                tab.textContent = `${padded}`;  // 初始只显示编号
-                tab.setAttribute('title', `${padded}.md (标题加载中……)`);
-                tab.dataset.index = i;
-                
-                tab.addEventListener('click', (e) => {
-                    const idx = parseInt(e.currentTarget.dataset.index, 10);
-                    if (!isNaN(idx) && !isLoading) {
-                        loadDocument(idx);
-                    }
-                });
-                
-                tabsContainer.appendChild(tab);
-                tabElements.set(i, tab);
-
-                // ---- 下拉选项 ----
-                const option = document.createElement('option');
-                option.value = i;
-                option.textContent = `${padded} · 加载中…`;
-                option.dataset.index = i;
-                docSelect.appendChild(option);
-                optionElements.set(i, option);
             }
 
-            // 预取标题：为了让选项卡尽快显示真实标题，发起异步请求（不阻塞界面）
-            // 但避免并发过高，可以分批；不过100个在现代浏览器没问题。
-            preloadAllTitles();
-        }
-
-        // 预加载所有文档的标题 (仅获取标题，不解析完整HTML，但为了省事直接用fetchAndParse)
-        // 但因为我们fetchAndParse会解析html，会稍重；但由于缓存，后续打开很快。
-        async function preloadAllTitles() {
-            // 采用并发限制 (分成5批，每批20个) 更友好
-            const batchSize = 15;
-            const delay = (ms) => new Promise(resolve => setTimeout(resolve, ms));
-            
-            for (let start = 1; start <= TOTAL_DOCS; start += batchSize) {
-                const batch = [];
-                for (let i = start; i < Math.min(start + batchSize, TOTAL_DOCS + 1); i++) {
-                    batch.push((async (idx) => {
-                        try {
-                            const data = await fetchAndParseMarkdown(idx);
-                            updateTabTitle(idx, data.title);
-                            updateOptionTitle(idx, data.title);
-                        } catch (e) {
-                            // 个别出错不影响
-                            const fallbackTitle = `文档 ${padIndex(idx)}`;
-                            updateTabTitle(idx, fallbackTitle);
-                            updateOptionTitle(idx, fallbackTitle);
+            // 显示文档内容
+            function displayDocument(docInfo, index) {
+                const padded = padIndex(index);
+                
+                currentDocTitle.textContent = docInfo.title;
+                docBadge.textContent = padded + '.md';
+                docBadge.style.display = 'inline-block';
+                
+                contentBody.innerHTML = `
+                    <div class="markdown-body">
+                        ${docInfo.html}
+                    </div>
+                `;
+                
+                // 高亮代码块
+                if (typeof hljs !== 'undefined') {
+                    contentBody.querySelectorAll('pre code').forEach((block) => {
+                        if (!block.classList.contains('hljs')) {
+                            hljs.highlightElement(block);
                         }
-                    })(i));
+                    });
                 }
-                await Promise.all(batch);
-                // 稍微喘息避免阻塞UI线程
-                await delay(30);
-            }
-            
-            // 全部标题更新完后，确保当前选中文档的标题正确
-            if (cache.has(activeIndex)) {
-                const curData = cache.get(activeIndex);
-                updateTabTitle(activeIndex, curData.title);
-                updateOptionTitle(activeIndex, curData.title);
-            }
-            statusBadge.textContent = `✅ 标题已同步 · 100篇`;
-        }
-
-        // ----- 下拉框事件监听: “点击下拉框显示文章内容”的核心交互-----
-        docSelect.addEventListener('change', (e) => {
-            const selectedIndex = parseInt(e.target.value, 10);
-            if (!isNaN(selectedIndex) && selectedIndex >= 1 && selectedIndex <= TOTAL_DOCS && !isLoading) {
-                loadDocument(selectedIndex);
-            }
-        });
-
-        // 为了避免在加载时重复触发切换
-        // 以及键盘/辅助功能支持
-
-        // ----- 初始化 & 默认加载第一篇 -----
-        async function initialize() {
-            buildNavigation();
-            
-            // 设置初始激活索引并加载第一篇 (01.md)
-            activeIndex = 1;
-            
-            // 显示加载中
-            contentPanel.innerHTML = `<div class="loading-placeholder"><div class="spinner"></div><div>加载 01.md …</div></div>`;
-            
-            try {
-                const firstData = await fetchAndParseMarkdown(1);
-                updateTabTitle(1, firstData.title);
-                updateOptionTitle(1, firstData.title);
-                renderContentToPanel(firstData.html, firstData.title, 1);
-                updateActiveTabUI(1);
-                docSelect.value = '1';
-                statusBadge.textContent = firstData.usedFallback ? `📋 示例 · 01/100` : `📄 已加载 · 01.md`;
-            } catch (e) {
-                contentPanel.innerHTML = `<div class="empty-message">❌ 无法加载初始文档，请刷新</div>`;
             }
 
-            // 预取标题已在 buildNavigation 中调用 preloadAllTitles，优雅显示
-        }
+            // HTML 转义
+            function escapeHtml(text) {
+                const div = document.createElement('div');
+                div.textContent = text;
+                return div.innerHTML;
+            }
 
-        // 启动一切
-        initialize();
-
-        // 可选：如果在iframe或某些环境下链接点击，暴露一个手动重试 (不需要)
-        window.__nav = { reload: () => loadDocument(activeIndex) };
-    })();
-</script>
+            // 初始化
+            loadDocList();
+        })();
+    </script>
 </body>
 </html>
