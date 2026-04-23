@@ -300,6 +300,78 @@
             font-weight: 600;
         }
 
+        /* 图片样式 */
+        .markdown-body img {
+            max-width: 100%;
+            height: auto;
+            border-radius: 8px;
+            margin: 1rem 0;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+            cursor: pointer;
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+        }
+
+        .markdown-body img:hover {
+            transform: scale(1.02);
+            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
+        }
+
+        /* 视频容器样式 */
+        .markdown-body .video-container {
+            position: relative;
+            padding-bottom: 56.25%;
+            height: 0;
+            overflow: hidden;
+            max-width: 100%;
+            margin: 1.5rem 0;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        .markdown-body .video-container iframe,
+        .markdown-body .video-container video {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            border-radius: 8px;
+        }
+
+        /* 本地视频样式 */
+        .markdown-body video {
+            max-width: 100%;
+            border-radius: 8px;
+            margin: 1rem 0;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        /* 图片查看器模态框 */
+        .image-viewer {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.9);
+            z-index: 1000;
+            cursor: zoom-out;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .image-viewer.active {
+            display: flex;
+        }
+
+        .image-viewer img {
+            max-width: 90%;
+            max-height: 90%;
+            object-fit: contain;
+            border-radius: 4px;
+        }
+
         .welcome-message {
             display: flex;
             flex-direction: column;
@@ -407,6 +479,11 @@
         </div>
     </div>
 
+    <!-- 图片查看器 -->
+    <div class="image-viewer" id="imageViewer">
+        <img src="" alt="查看图片" id="viewerImage">
+    </div>
+
     <script>
         (function() {
             "use strict";
@@ -425,7 +502,196 @@
                     breaks: true,
                     gfm: true
                 });
+
+                // 自定义渲染器以支持视频和增强图片
+                const renderer = new marked.Renderer();
+                
+                // 保存原始的图片渲染
+                const originalImage = renderer.image.bind(renderer);
+                const originalLink = renderer.link.bind(renderer);
+                
+                // 自定义链接渲染（检测视频链接）
+                renderer.link = function(href, title, text) {
+                    // 检测视频链接
+                    if (href && isVideoUrl(href)) {
+                        return createVideoEmbed(href, title);
+                    }
+                    return originalLink(href, title, text);
+                };
+
+                // 自定义图片渲染（添加点击放大功能）
+                renderer.image = function(href, title, text) {
+                    if (!href) return '';
+                    
+                    // 处理本地图片路径
+                    let imgSrc = href;
+                    if (!href.startsWith('http') && !href.startsWith('//')) {
+                        imgSrc = './' + href.replace(/^\.\//, '');
+                    }
+                    
+                    const titleAttr = title ? ` title="${title}"` : '';
+                    const altAttr = text ? ` alt="${text}"` : ' alt=""';
+                    
+                    return `<img src="${imgSrc}"${altAttr}${titleAttr} loading="lazy" onclick="window.openImageViewer('${imgSrc}')" onerror="this.style.display='none'">`;
+                };
+
+                // 自定义段落渲染（检测单独的视频链接）
+                renderer.paragraph = function(text) {
+                    // 检测是否为视频URL
+                    const videoMatch = text.match(/^(https?:\/\/[^\s]+\.(?:mp4|webm|ogg|mov|avi|mkv)(?:\?[^\s]*)?)$/i);
+                    if (videoMatch) {
+                        return createLocalVideo(videoMatch[1]);
+                    }
+                    
+                    // 检测YouTube等视频链接
+                    const youtubeMatch = text.match(/^(https?:\/\/(?:www\.)?(?:youtube\.com\/watch\?v=|youtu\.be\/)([a-zA-Z0-9_-]+))$/);
+                    if (youtubeMatch) {
+                        return createVideoEmbed(youtubeMatch[1], '');
+                    }
+                    
+                    return `<p>${text}</p>`;
+                };
+
+                // 自定义HTML渲染（保留原始HTML，支持iframe等）
+                renderer.html = function(html) {
+                    // 检测iframe标签（可能包含视频）
+                    if (html.includes('<iframe') && (html.includes('youtube') || html.includes('vimeo') || html.includes('bilibili'))) {
+                        const srcMatch = html.match(/src=["']([^"']+)["']/);
+                        if (srcMatch) {
+                            const src = srcMatch[1];
+                            return createVideoEmbed(src, '');
+                        }
+                    }
+                    return html;
+                };
+
+                marked.setOptions({ renderer: renderer });
             }
+
+            // 判断是否为视频URL
+            function isVideoUrl(url) {
+                const videoPatterns = [
+                    /youtube\.com\/watch\?v=/i,
+                    /youtu\.be\//i,
+                    /vimeo\.com\//i,
+                    /bilibili\.com\/video\//i,
+                    /\.mp4(\?.*)?$/i,
+                    /\.webm(\?.*)?$/i,
+                    /\.ogg(\?.*)?$/i,
+                    /\.mov(\?.*)?$/i
+                ];
+                return videoPatterns.some(pattern => pattern.test(url));
+            }
+
+            // 创建视频嵌入
+            function createVideoEmbed(url, title) {
+                let embedHtml = '';
+                
+                // YouTube
+                if (url.includes('youtube.com/watch?v=') || url.includes('youtu.be/')) {
+                    let videoId = '';
+                    const watchMatch = url.match(/watch\?v=([a-zA-Z0-9_-]+)/);
+                    const shortMatch = url.match(/youtu\.be\/([a-zA-Z0-9_-]+)/);
+                    if (watchMatch) videoId = watchMatch[1];
+                    if (shortMatch) videoId = shortMatch[1];
+                    
+                    if (videoId) {
+                        embedHtml = `
+                            <div class="video-container">
+                                <iframe 
+                                    src="https://www.youtube.com/embed/${videoId}" 
+                                    frameborder="0" 
+                                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
+                                    allowfullscreen
+                                    title="${title || 'YouTube 视频'}">
+                                </iframe>
+                            </div>`;
+                    }
+                }
+                // Vimeo
+                else if (url.includes('vimeo.com/')) {
+                    const vimeoMatch = url.match(/vimeo\.com\/(\d+)/);
+                    if (vimeoMatch) {
+                        const videoId = vimeoMatch[1];
+                        embedHtml = `
+                            <div class="video-container">
+                                <iframe 
+                                    src="https://player.vimeo.com/video/${videoId}" 
+                                    frameborder="0" 
+                                    allow="autoplay; fullscreen; picture-in-picture" 
+                                    allowfullscreen
+                                    title="${title || 'Vimeo 视频'}">
+                                </iframe>
+                            </div>`;
+                    }
+                }
+                // Bilibili
+                else if (url.includes('bilibili.com/video/')) {
+                    const biliMatch = url.match(/bilibili\.com\/video\/([a-zA-Z0-9]+)/);
+                    if (biliMatch) {
+                        const videoId = biliMatch[1];
+                        embedHtml = `
+                            <div class="video-container">
+                                <iframe 
+                                    src="https://player.bilibili.com/player.html?bvid=${videoId}" 
+                                    frameborder="0" 
+                                    allowfullscreen
+                                    title="${title || 'Bilibili 视频'}">
+                                </iframe>
+                            </div>`;
+                    }
+                }
+                // 本地视频文件
+                else if (url.match(/\.(mp4|webm|ogg|mov)(\?.*)?$/i)) {
+                    embedHtml = createLocalVideo(url, title);
+                }
+                // 其他视频链接
+                else {
+                    embedHtml = `<p>🎬 <a href="${url}" target="_blank">${title || url}</a></p>`;
+                }
+                
+                return embedHtml;
+            }
+
+            // 创建本地视频播放器
+            function createLocalVideo(url, title) {
+                return `
+                    <div class="video-container">
+                        <video controls ${title ? `title="${title}"` : ''}>
+                            <source src="${url}" type="video/${getVideoType(url)}">
+                            您的浏览器不支持视频播放。
+                        </video>
+                    </div>`;
+            }
+
+            // 获取视频类型
+            function getVideoType(url) {
+                if (url.endsWith('.mp4')) return 'mp4';
+                if (url.endsWith('.webm')) return 'webm';
+                if (url.endsWith('.ogg')) return 'ogg';
+                if (url.endsWith('.mov')) return 'quicktime';
+                return 'mp4';
+            }
+
+            // 图片查看器功能
+            window.openImageViewer = function(imgSrc) {
+                const viewer = document.getElementById('imageViewer');
+                const img = document.getElementById('viewerImage');
+                img.src = imgSrc;
+                viewer.classList.add('active');
+            };
+
+            // 关闭图片查看器
+            document.getElementById('imageViewer').addEventListener('click', function() {
+                this.classList.remove('active');
+            });
+
+            // ESC 关闭图片查看器
+            document.addEventListener('keydown', function(e) {
+                if (e.key === 'Escape') {
+                    document.getElementById('imageViewer').classList.remove('active');
+                }
+            });
 
             const TOTAL_FILES = 100;
             const docListEl = document.getElementById('docList');
@@ -434,8 +700,8 @@
             const docBadge = document.getElementById('docBadge');
             
             let activeIndex = null;
-            const docItems = new Map(); // index -> DOM element
-            const cache = new Map(); // index -> { title, html, filename }
+            const docItems = new Map();
+            const cache = new Map();
 
             function padIndex(i) {
                 return i.toString().padStart(2, '0');
@@ -449,21 +715,18 @@
                 try {
                     const response = await fetch(url, { method: 'HEAD' });
                     if (!response.ok) {
-                        return null; // 文件不存在
+                        return null;
                     }
                     
-                    // 文件存在，获取内容
                     const contentResponse = await fetch(url);
                     const rawMarkdown = await contentResponse.text();
                     
-                    // 提取标题
                     let title = null;
                     const match = rawMarkdown.match(/^#\s+(.*?)(?:\r?\n|$)/m);
                     if (match && match[1]) {
                         title = match[1].trim();
                     }
                     
-                    // 解析 HTML
                     let html = '';
                     if (typeof marked !== 'undefined') {
                         html = marked.parse(rawMarkdown);
@@ -483,7 +746,7 @@
                 }
             }
 
-            // 渲染文档列表（只显示存在的文件）
+            // 渲染文档列表
             async function loadDocList() {
                 docListEl.innerHTML = '<div class="empty-state"><p>正在加载导航列表...</p></div>';
                 
@@ -494,7 +757,6 @@
                 
                 const results = await Promise.all(checks);
                 
-                // 清空并重新构建列表
                 docListEl.innerHTML = '';
                 let hasDocs = false;
                 
@@ -553,7 +815,6 @@
 
             // 加载并显示文档
             async function loadDocument(index) {
-                // 更新激活状态
                 if (activeIndex) {
                     const prevActive = docItems.get(activeIndex);
                     if (prevActive) {
@@ -568,25 +829,21 @@
                 
                 activeIndex = index;
                 
-                // 如果缓存中有，直接显示
                 if (cache.has(index)) {
                     const docInfo = cache.get(index);
                     displayDocument(docInfo, index);
                     return;
                 }
                 
-                // 显示加载状态
                 contentBody.innerHTML = '<div class="loading-spinner"><div class="spinner"></div></div>';
                 currentDocTitle.textContent = '加载中...';
                 docBadge.style.display = 'none';
                 
-                // 重新获取
                 const docInfo = await checkAndGetDocInfo(index);
                 if (docInfo && docInfo.exists) {
                     cache.set(index, docInfo);
                     displayDocument(docInfo, index);
                     
-                    // 更新列表项标题（可能标题有变化）
                     const item = docItems.get(index);
                     if (item) {
                         const titleEl = item.querySelector('.doc-title');
