@@ -1,0 +1,326 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>MC1.20.1WASM</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background: #0b1120;
+            font-family: system-ui, 'Segoe UI', sans-serif;
+            height: 100vh;
+            width: 100%;
+            overflow: hidden;
+            position: fixed;
+            top: 0;
+            left: 0;
+        }
+
+        .app-container {
+            display: flex;
+            flex-direction: column;
+            height: 100%;
+            width: 100%;
+            background: #0a0f1c;
+        }
+
+        .control-panel {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            flex: 1;
+            gap: 20px;
+            padding: 24px;
+            background: radial-gradient(circle at 20% 30%, #111827, #030712);
+        }
+
+        .disclaimer {
+            background: #1e293bdd;
+            backdrop-filter: blur(12px);
+            border-left: 4px solid #f97316;
+            border-radius: 16px;
+            padding: 12px 20px;
+            text-align: center;
+            color: #fcd34d;
+            font-size: 0.85rem;
+            font-weight: 500;
+            max-width: 280px;
+        }
+
+        .highlight-url {
+            background: #1e293bdd;
+            backdrop-filter: blur(12px);
+            border-radius: 20px;
+            padding: 12px 18px;
+            max-width: 90%;
+            width: 340px;
+            text-align: center;
+        }
+
+        .url-content {
+            font-family: monospace;
+            font-size: 0.7rem;
+            word-break: break-all;
+            color: #e2e8f0;
+            background: #0f172a;
+            padding: 6px 10px;
+            border-radius: 12px;
+        }
+
+        .load-btn {
+            background: linear-gradient(135deg, #1f6e8c, #0e4e6b);
+            border: none;
+            padding: 14px 32px;
+            border-radius: 60px;
+            color: white;
+            font-size: 1.3rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.1s;
+            width: 220px;
+            text-align: center;
+        }
+
+        .load-btn:active {
+            transform: scale(0.96);
+        }
+
+        .info-text {
+            color: #cbd5e6;
+            background: #1e293bb3;
+            padding: 6px 16px;
+            border-radius: 40px;
+            font-size: 0.8rem;
+        }
+
+        .webview-wrapper {
+            flex: 1;
+            width: 100%;
+            background: #000;
+            position: relative;
+            display: none;
+            flex-direction: column;
+        }
+
+        iframe {
+            width: 100%;
+            height: 100%;
+            border: none;
+            display: block;
+        }
+
+        /* 右下角半透明全屏按钮 */
+        .fullscreen-overlay-btn {
+            position: absolute;
+            bottom: 20px;
+            right: 20px;
+            z-index: 9999;
+            background: rgba(30, 41, 59, 0.7);
+            backdrop-filter: blur(8px);
+            border: 1px solid rgba(255, 255, 255, 0.25);
+            border-radius: 50px;
+            padding: 10px 18px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            font-size: 0.9rem;
+            font-weight: 500;
+            color: white;
+            font-family: system-ui, sans-serif;
+            box-shadow: 0 2px 12px rgba(0,0,0,0.3);
+        }
+
+        .fullscreen-overlay-btn:active {
+            transform: scale(0.95);
+            background: rgba(30, 41, 59, 0.9);
+        }
+
+        .fullscreen-overlay-btn svg {
+            width: 20px;
+            height: 20px;
+            stroke: white;
+            stroke-width: 2;
+            fill: none;
+        }
+
+        /* 全屏时隐藏原有的底部栏（已经不需要但保留样式无影响），同时全屏时按钮依然可见但会被全屏元素覆盖? 
+           全屏作用于webviewWrapper，按钮在其内部，全屏后依然显示且可用，完美 */
+        .fullscreen-active .bottom-bar {
+            display: none;
+        }
+
+        .hidden-panel {
+            display: none !important;
+        }
+
+        .spinner {
+            width: 16px;
+            height: 16px;
+            border: 2px solid rgba(255,255,255,0.3);
+            border-top: 2px solid #facc15;
+            border-radius: 50%;
+            animation: spin 0.7s linear infinite;
+            display: inline-block;
+            margin-right: 8px;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body>
+<div class="app-container">
+    <div id="controlPanel" class="control-panel">
+        <div class="disclaimer">⚠️ 这不是本站运营的网站，内容由第三方提供</div>
+        <div class="highlight-url">
+            <div class="url-content">https://eaglercraft.ir/zh/play/eagly-1.20-wasm?touch=false&userscript=</div>
+        </div>
+        <button id="loadWebBtn" class="load-btn">🌐 加载web</button>
+        <div id="statusMessage" class="info-text">点击按钮加载内嵌网页</div>
+    </div>
+
+    <div id="webviewWrapper" class="webview-wrapper">
+        <iframe id="webFrame" 
+                sandbox="allow-same-origin allow-scripts allow-popups allow-forms allow-modals allow-top-navigation-by-user-activation allow-downloads allow-pointer-lock" 
+                referrerpolicy="strict-origin-when-cross-origin"
+                allow="fullscreen; autoplay; clipboard-write"
+                title="内嵌网页"></iframe>
+        
+        <!-- 右下角半透明全屏按钮 (新) -->
+        <div id="floatingFullscreenBtn" class="fullscreen-overlay-btn">
+            <svg viewBox="0 0 24 24" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3" />
+                <path d="M15 3h3a2 2 0 0 1 2 2v3M3 9v3m18 0V9M9 21H6a2 2 0 0 1-2-2v-3" />
+            </svg>
+            <span>全屏</span>
+        </div>
+    </div>
+</div>
+
+<script>
+    const DEFAULT_URL = "https://eaglercraft.ir/zh/play/eagly-1.20-wasm?touch=false&userscript=";
+    
+    const controlPanel = document.getElementById('controlPanel');
+    const webviewWrapper = document.getElementById('webviewWrapper');
+    const loadBtn = document.getElementById('loadWebBtn');
+    const webFrame = document.getElementById('webFrame');
+    const floatingFullscreenBtn = document.getElementById('floatingFullscreenBtn');
+    const statusMsg = document.getElementById('statusMessage');
+    
+    let isLoading = false;
+    
+    function setStatus(text, isError = false) {
+        if (statusMsg) {
+            statusMsg.innerHTML = text;
+            statusMsg.style.background = isError ? '#b91c1ccc' : '#1e293bb3';
+        }
+    }
+    
+    function showLoading() {
+        statusMsg.innerHTML = '<span class="spinner"></span> 加载中...';
+        statusMsg.style.background = '#1e293bb3';
+    }
+    
+    async function loadWebPage() {
+        if (isLoading) return;
+        isLoading = true;
+        
+        try {
+            showLoading();
+            controlPanel.classList.add('hidden-panel');
+            webviewWrapper.style.display = "flex";
+            
+            webFrame.src = "about:blank";
+            webFrame.src = DEFAULT_URL;
+            
+            const onLoad = () => {
+                setStatus("✅ 加载完成，点击右下角「全屏」按钮");
+                webFrame.removeEventListener('load', onLoad);
+                webFrame.removeEventListener('error', onError);
+                isLoading = false;
+            };
+            
+            const onError = () => {
+                setStatus("❌ 加载失败，请检查网络或网站是否可访问", true);
+                setTimeout(() => {
+                    controlPanel.classList.remove('hidden-panel');
+                    webviewWrapper.style.display = "none";
+                    isLoading = false;
+                }, 1500);
+                webFrame.removeEventListener('load', onLoad);
+                webFrame.removeEventListener('error', onError);
+            };
+            
+            webFrame.addEventListener('load', onLoad);
+            webFrame.addEventListener('error', onError);
+            
+            setTimeout(() => {
+                if (isLoading) {
+                    setStatus("⏱️ 加载超时，请重试", true);
+                    controlPanel.classList.remove('hidden-panel');
+                    webviewWrapper.style.display = "none";
+                    isLoading = false;
+                }
+            }, 10000);
+            
+        } catch (err) {
+            setStatus("加载出错", true);
+            controlPanel.classList.remove('hidden-panel');
+            webviewWrapper.style.display = "none";
+            isLoading = false;
+        }
+    }
+    
+    // 全屏功能：点击右下角按钮全屏内嵌网页，按ESC退出
+    async function enterFullscreen() {
+        if (!webviewWrapper || webviewWrapper.style.display !== 'flex') {
+            setStatus("请先加载网页", true);
+            return;
+        }
+        try {
+            // 如果已经是全屏状态，则退出全屏
+            if (document.fullscreenElement) {
+                await document.exitFullscreen();
+                return;
+            }
+            // 进入全屏前给容器加样式（虽然没有底部栏了但保持兼容），全屏后右下角按钮依然可见
+            webviewWrapper.classList.add('fullscreen-active');
+            await webviewWrapper.requestFullscreen();
+        } catch (err) {
+            webviewWrapper.classList.remove('fullscreen-active');
+            setStatus("全屏失败，请检查浏览器权限", true);
+        }
+    }
+    
+    // 监听全屏变化，处理ESC退出时恢复样式
+    function onFullscreenChange() {
+        if (!document.fullscreenElement && webviewWrapper) {
+            webviewWrapper.classList.remove('fullscreen-active');
+        } else if (document.fullscreenElement && webviewWrapper) {
+            // 确保全屏时样式类存在
+            if (!webviewWrapper.classList.contains('fullscreen-active')) {
+                webviewWrapper.classList.add('fullscreen-active');
+            }
+        }
+    }
+    
+    document.addEventListener('fullscreenchange', onFullscreenChange);
+    document.addEventListener('webkitfullscreenchange', onFullscreenChange);
+    
+    loadBtn.addEventListener('click', loadWebPage);
+    floatingFullscreenBtn.addEventListener('click', enterFullscreen);
+    
+    webviewWrapper.style.display = "none";
+</script>
+</body>
+</html>
