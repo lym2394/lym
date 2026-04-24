@@ -50,15 +50,13 @@
             display:flex;
             align-items:center;
             gap:8px;
-            margin-bottom:4px;
-            animation:fadeInDown 0.4s ease
+            margin-bottom:4px
         }
 
         .sidebar-header p{
             font-size:0.75rem;
             color:#64748b;
-            font-weight:500;
-            animation:fadeIn 0.5s ease 0.1s both
+            font-weight:500
         }
 
         .category-tabs{
@@ -79,39 +77,32 @@
             border:1.5px solid rgba(59,130,246,0.15);
             background:rgba(255,255,255,0.8);
             border-radius:24px;
-            transition:all 0.03s;
-            backdrop-filter:blur(5px);
-            -webkit-backdrop-filter:blur(5px);
+            transition:all 0.008s;
             position:relative;
             overflow:hidden
         }
 
-        .cat-tab::after{
-            content:'';
-            position:absolute;
-            inset:0;
-            background:radial-gradient(circle at center,rgba(255,255,255,0.8) 0%,transparent 70%);
-            opacity:0;
-            transition:opacity 0.03s
+        .cat-tab:active{
+            transform:scale(0.92);
+            transition:transform 0.008s;
+            background:rgba(59,130,246,0.2)
         }
-
-        .cat-tab:hover::after{opacity:1}
-        .cat-tab:active{transform:scale(0.95);transition:transform 0.03s}
 
         .cat-tab:hover{
             background:rgba(219,234,254,0.6);
             border-color:rgba(59,130,246,0.3);
             color:#1e40af;
-            transform:translateY(-1px);
-            box-shadow:0 2px 6px rgba(37,99,235,0.15)
+            transform:translateY(-2px);
+            box-shadow:0 4px 12px rgba(37,99,235,0.2);
+            transition:all 0.008s
         }
 
         .cat-tab.active{
             background:linear-gradient(135deg,#3b82f6,#2563eb);
             color:#fff;
             border-color:transparent;
-            box-shadow:0 4px 12px rgba(37,99,235,0.3);
-            animation:pulse 2s ease-in-out infinite
+            box-shadow:0 4px 16px rgba(37,99,235,0.35);
+            animation:tabPulse 2s ease-in-out infinite
         }
 
         .doc-list{
@@ -132,126 +123,93 @@
             margin:3px 0;
             border-radius:12px;
             cursor:pointer;
-            transition:all 0.03s;
+            transition:all 0.008s;
             display:flex;
             align-items:center;
             gap:10px;
             color:#475569;
             font-size:0.85rem;
             font-weight:500;
-            border:1px solid transparent;
+            border:2px solid transparent;
             background:rgba(255,255,255,0.7);
-            backdrop-filter:blur(5px);
-            -webkit-backdrop-filter:blur(5px);
             position:relative;
-            overflow:hidden;
-            animation:fadeInUp 0.3s ease both
+            overflow:visible
         }
-
-        .doc-item:nth-child(1){animation-delay:0.01s}
-        .doc-item:nth-child(2){animation-delay:0.02s}
-        .doc-item:nth-child(3){animation-delay:0.03s}
-        .doc-item:nth-child(4){animation-delay:0.04s}
-        .doc-item:nth-child(5){animation-delay:0.05s}
-        .doc-item:nth-child(6){animation-delay:0.06s}
-        .doc-item:nth-child(7){animation-delay:0.07s}
-        .doc-item:nth-child(8){animation-delay:0.08s}
-        .doc-item:nth-child(9){animation-delay:0.09s}
-        .doc-item:nth-child(10){animation-delay:0.1s}
-
-        .doc-item::before{
-            content:'';
-            position:absolute;
-            left:0;top:0;
-            height:100%;
-            width:4px;
-            background:linear-gradient(180deg,#3b82f6,#60a5fa);
-            border-radius:0 8px 8px 0;
-            transform:scaleY(0);
-            transition:transform 0.03s
-        }
-
-        .doc-item::after{
-            content:'';
-            position:absolute;
-            inset:0;
-            background:radial-gradient(circle at var(--x,50%) var(--y,50%),rgba(59,130,246,0.15) 0%,transparent 60%);
-            opacity:0;
-            transition:opacity 0.03s
-        }
-
-        .doc-item:hover::after{opacity:1}
 
         .doc-item:hover{
-            background:rgba(219,234,254,0.7);
-            border-color:rgba(59,130,246,0.2);
-            transform:translateX(3px) scale(1.01);
-            box-shadow:0 3px 10px rgba(37,99,235,0.1)
+            background:rgba(219,234,254,0.85);
+            border-color:#3b82f6;
+            transform:translateX(5px) scale(1.02);
+            box-shadow:0 6px 20px rgba(37,99,235,0.2);
+            z-index:10;
+            transition:all 0.008s
         }
 
-        .doc-item:hover::before{transform:scaleY(0.7)}
-
         .doc-item:active{
-            transform:scale(0.97);
-            transition:transform 0.03s;
-            background:rgba(191,219,254,0.8)
+            transform:scale(0.94);
+            transition:transform 0.008s;
+            background:#bfdbfe;
+            border-color:#2563eb
         }
 
         .doc-item.active{
-            background:linear-gradient(135deg,rgba(219,234,254,0.95),rgba(191,219,254,0.9));
-            border-color:rgba(59,130,246,0.4);
+            background:linear-gradient(135deg,#dbeafe,#bfdbfe);
+            border-color:#2563eb;
             color:#1e40af;
             font-weight:600;
-            box-shadow:0 4px 14px rgba(37,99,235,0.15);
-            transform:translateX(4px) scale(1.02)
+            box-shadow:0 4px 16px rgba(37,99,235,0.2);
+            transform:translateX(6px) scale(1.03)
         }
-
-        .doc-item.active::before{transform:scaleY(1);width:5px}
 
         .doc-icon{
             width:18px;
             height:18px;
             opacity:0.7;
             flex-shrink:0;
-            transition:all 0.03s
+            transition:all 0.008s
         }
 
         .doc-item:hover .doc-icon{
-            transform:rotate(-5deg) scale(1.1);
-            opacity:0.9
-        }
-
-        .doc-item.active .doc-icon{
+            transform:rotate(-10deg) scale(1.2);
             opacity:1;
             color:#2563eb;
-            animation:bounce 0.3s ease
+            transition:all 0.008s
+        }
+
+        .doc-item:active .doc-icon{
+            transform:rotate(15deg) scale(0.9);
+            transition:all 0.008s
         }
 
         .doc-info{flex:1;min-width:0}
+        .doc-title{font-weight:550;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;transition:all 0.008s}
 
-        .doc-title{
-            font-weight:550;
-            white-space:nowrap;
-            overflow:hidden;
-            text-overflow:ellipsis;
-            transition:all 0.03s
+        .doc-item:hover .doc-title{
+            letter-spacing:0.02em;
+            color:#1e40af;
+            transition:all 0.008s
         }
 
-        .doc-item:hover .doc-title{letter-spacing:0.01em}
+        .doc-filename{font-size:0.68rem;color:#94a3b8;margin-top:2px;font-weight:450;transition:all 0.008s}
+        .doc-item:hover .doc-filename{color:#3b82f6;transition:all 0.008s}
+        .doc-item.active .doc-filename{color:#2563eb}
 
-        .doc-filename{
-            font-size:0.68rem;
-            color:#94a3b8;
-            margin-top:2px;
-            font-weight:450;
-            transition:all 0.03s
+        /* 点击波纹 */
+        .ripple-effect{
+            position:absolute;
+            border-radius:50%;
+            background:rgba(59,130,246,0.4);
+            transform:scale(0);
+            animation:ripple 0.2s ease-out;
+            pointer-events:none
         }
 
-        .doc-item:hover .doc-filename{color:#60a5fa}
-        .doc-item.active .doc-filename{color:#60a5fa}
+        @keyframes ripple{
+            to{transform:scale(15);opacity:0}
+        }
 
         .empty-state{padding:50px 20px;text-align:center;color:#94a3b8;font-size:0.85rem}
-        .empty-state svg{width:40px;height:40px;margin-bottom:16px;opacity:0.4;animation:float 3s ease-in-out infinite}
+        .empty-state svg{width:40px;height:40px;margin-bottom:16px;opacity:0.4}
 
         .content{flex:1;display:flex;flex-direction:column;overflow:hidden}
 
@@ -272,8 +230,7 @@
             color:#1e40af;
             display:flex;
             align-items:center;
-            gap:10px;
-            animation:fadeIn 0.3s ease
+            gap:10px
         }
 
         .content-badge{
@@ -283,8 +240,7 @@
             border-radius:20px;
             font-size:0.7rem;
             font-weight:600;
-            border:1px solid rgba(59,130,246,0.2);
-            animation:scaleIn 0.3s ease
+            border:1px solid rgba(59,130,246,0.2)
         }
 
         .content-body{
@@ -299,8 +255,7 @@
             max-width:860px;
             margin:0 auto;
             line-height:1.7;
-            font-size:0.92rem;
-            animation:fadeInUp 0.4s ease
+            font-size:0.92rem
         }
 
         .markdown-body h1{
@@ -321,8 +276,8 @@
         .markdown-body blockquote{border-left:3px solid #3b82f6;padding-left:1rem;margin:1.2rem 0;color:#64748b;font-style:italic;background:rgba(219,234,254,0.3);padding:0.8rem 1rem;border-radius:0 10px 10px 0}
         .markdown-body ul,.markdown-body ol{margin:1rem 0;padding-left:1.8rem}
         .markdown-body li{margin:0.4rem 0}
-        .markdown-body a{color:#2563eb;text-decoration:none;font-weight:500}
-        .markdown-body a:hover{text-decoration:underline}
+        .markdown-body a{color:#2563eb;text-decoration:underline;font-weight:500;cursor:pointer}
+        .markdown-body a:hover{color:#1d4ed8;text-decoration:underline}
         .markdown-body table{width:100%;border-collapse:collapse;margin:1.2rem 0;border-radius:10px;overflow:hidden;box-shadow:0 2px 6px rgba(0,0,0,0.03)}
         .markdown-body td,.markdown-body th{border:1px solid rgba(59,130,246,0.12);padding:0.7rem;text-align:left}
         .markdown-body th{background:rgba(219,234,254,0.4);font-weight:600}
@@ -334,8 +289,7 @@
             border-radius:14px;
             overflow:hidden;
             background:#fff;
-            box-shadow:0 6px 20px rgba(37,99,235,0.05);
-            animation:scaleIn 0.3s ease
+            box-shadow:0 6px 20px rgba(37,99,235,0.05)
         }
         .iframe-container iframe{width:100%;height:100%;border:none;border-radius:14px}
 
@@ -348,9 +302,9 @@
             text-align:center;
             color:#94a3b8
         }
-        .welcome-message svg{width:80px;height:80px;margin-bottom:24px;opacity:0.25;animation:float 3s ease-in-out infinite}
-        .welcome-message h3{font-size:1.5rem;font-weight:600;margin-bottom:8px;color:#64748b;animation:fadeInUp 0.5s ease}
-        .welcome-message p{color:#94a3b8;font-weight:450;animation:fadeInUp 0.5s ease 0.1s both}
+        .welcome-message svg{width:80px;height:80px;margin-bottom:24px;opacity:0.25}
+        .welcome-message h3{font-size:1.5rem;font-weight:600;margin-bottom:8px;color:#64748b}
+        .welcome-message p{color:#94a3b8;font-weight:450}
 
         .loading-spinner{display:flex;align-items:center;justify-content:center;height:100%}
         .spinner{
@@ -361,16 +315,8 @@
             animation:spin 0.6s infinite linear
         }
 
-        /* 动画关键帧 */
         @keyframes spin{to{transform:rotate(360deg)}}
-        @keyframes fadeInUp{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
-        @keyframes fadeInDown{from{opacity:0;transform:translateY(-8px)}to{opacity:1;transform:translateY(0)}}
-        @keyframes fadeIn{from{opacity:0}to{opacity:1}}
-        @keyframes scaleIn{from{opacity:0;transform:scale(0.9)}to{opacity:1;transform:scale(1)}}
-        @keyframes bounce{0%,100%{transform:scale(1)}50%{transform:scale(1.2)}}
-        @keyframes pulse{0%,100%{box-shadow:0 4px 12px rgba(37,99,235,0.3)}50%{box-shadow:0 4px 20px rgba(37,99,235,0.5)}}
-        @keyframes float{0%,100%{transform:translateY(0)}50%{transform:translateY(-6px)}}
-        @keyframes shimmer{0%{background-position:-200% 0}100%{background-position:200% 0}}
+        @keyframes tabPulse{0%,100%{box-shadow:0 4px 16px rgba(37,99,235,0.35)}50%{box-shadow:0 4px 24px rgba(37,99,235,0.55)}}
 
         @media(max-width:768px){
             .sidebar{width:280px}
@@ -419,17 +365,34 @@
     <script>
         (function(){
             "use strict";
+            
+            // 配置 marked - 关键：设置 sanitize 为 false 以支持原生 HTML 链接
             if(typeof marked!=='undefined'){
                 marked.setOptions({
-                    highlight:function(code,lang){
-                        if(typeof hljs!=='undefined'&&lang&&hljs.getLanguage(lang)){
-                            try{return hljs.highlight(code,{language:lang}).value}catch(e){}
-                        }
-                        return code
-                    },
-                    breaks:true,
-                    gfm:true
-                })
+                    sanitize: false,
+                    breaks: true,
+                    gfm: true,
+                    headerIds: false,
+                    mangle: false
+                });
+                
+                // 自定义渲染器确保链接正常
+                const renderer = new marked.Renderer();
+                
+                // 保留原始链接渲染
+                renderer.link = function(href, title, text) {
+                    const titleAttr = title ? ` title="${title}"` : '';
+                    return `<a href="${href}"${titleAttr} target="_blank" rel="noopener noreferrer">${text}</a>`;
+                };
+                
+                // 保留原始图片渲染
+                renderer.image = function(href, title, text) {
+                    const titleAttr = title ? ` title="${title}"` : '';
+                    const altAttr = text ? ` alt="${text}"` : ' alt=""';
+                    return `<img src="${href}"${altAttr}${titleAttr} style="max-width:100%;border-radius:8px;margin:12px 0;">`;
+                };
+                
+                marked.setOptions({ renderer: renderer });
             }
 
             const TOTAL_FILES=100;
@@ -447,26 +410,13 @@
             const listLoaded={md:false,html:false};
             const cachedLists={md:null,html:null};
 
-            // 鼠标跟踪光晕效果
-            docListEl.addEventListener('mousemove',function(e){
-                const items=this.querySelectorAll('.doc-item:hover');
-                items.forEach(item=>{
-                    const rect=item.getBoundingClientRect();
-                    const x=((e.clientX-rect.left)/rect.width)*100;
-                    const y=((e.clientY-rect.top)/rect.height)*100;
-                    item.style.setProperty('--x',x+'%');
-                    item.style.setProperty('--y',y+'%');
-                });
-            });
-
             document.querySelectorAll('.cat-tab').forEach(tab=>{
                 tab.addEventListener('click',function(){
                     const cat=this.dataset.cat;
                     if(cat===currentCategory)return;
                     
-                    // 点击动画
                     this.style.transform='scale(0.9)';
-                    setTimeout(()=>{this.style.transform=''},30);
+                    setTimeout(()=>{this.style.transform=''},8);
                     
                     document.querySelectorAll('.cat-tab').forEach(t=>t.classList.remove('active'));
                     this.classList.add('active');
@@ -551,46 +501,31 @@
                                 <div class="doc-filename">${doc.filename}</div>
                             </div>`;
                         
-                        // 增强的点击动画
-                        div.addEventListener('click',function(){
-                            // 波纹效果
-                            const ripple=document.createElement('div');
-                            ripple.style.cssText=`
-                                position:absolute;
-                                border-radius:50%;
-                                background:rgba(59,130,246,0.3);
-                                width:20px;
-                                height:20px;
-                                top:50%;
-                                left:50%;
-                                transform:translate(-50%,-50%) scale(0);
-                                animation:ripple 0.4s ease-out;
-                                pointer-events:none
-                            `;
+                        div.addEventListener('click',function(e){
+                            // 创建波纹元素
+                            const ripple=document.createElement('span');
+                            ripple.className='ripple-effect';
+                            const rect=this.getBoundingClientRect();
+                            const size=Math.max(rect.width,rect.height);
+                            ripple.style.width=ripple.style.height=size+'px';
+                            ripple.style.left=(e.clientX-rect.left-size/2)+'px';
+                            ripple.style.top=(e.clientY-rect.top-size/2)+'px';
                             this.appendChild(ripple);
-                            setTimeout(()=>ripple.remove(),400);
+                            setTimeout(()=>ripple.remove(),200);
                             
-                            // 缩放弹跳
-                            this.style.transform='scale(0.95)';
+                            // 立即缩放动画
+                            this.style.transform='scale(0.93)';
                             setTimeout(()=>{
                                 this.style.transform='';
                                 loadDoc(index,category)
-                            },30);
+                            },25);
                         });
                         
                         docListEl.appendChild(div);
                         docItems.set(key,div)
                     }
                 });
-                if(!hasDocs)docListEl.innerHTML='<div class="empty-state"><p>未检测到文件</p><p style="margin-top:8px;font-size:0.8rem;">目录当前没有可用文件</p></div>';
-                
-                // 添加ripple动画样式
-                if(!document.getElementById('rippleStyle')){
-                    const style=document.createElement('style');
-                    style.id='rippleStyle';
-                    style.textContent='@keyframes ripple{to{transform:translate(-50%,-50%) scale(20);opacity:0}}';
-                    document.head.appendChild(style);
-                }
+                if(!hasDocs)docListEl.innerHTML='<div class="empty-state"><p>未检测到文件</p><p style="margin-top:8px;font-size:0.8rem;">目录当前没有可用文件</p></div>'
             }
 
             async function loadDoc(index,category){
