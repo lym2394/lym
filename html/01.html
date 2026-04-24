@@ -1,0 +1,817 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+    <title>DeepSeek · 多会话对话</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(145deg, #eef6ff 0%, #ffffff 100%);
+            height: 100vh;
+            display: flex;
+            color: #1e293b;
+        }
+
+        /* 左侧边栏 */
+        .sidebar {
+            width: 280px;
+            background: rgba(255, 255, 255, 0.8);
+            backdrop-filter: blur(12px);
+            border-right: 1px solid #cbdffa;
+            display: flex;
+            flex-direction: column;
+            padding: 20px 12px;
+            box-shadow: 2px 0 12px rgba(0, 85, 255, 0.04);
+        }
+
+        .sidebar-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 20px;
+            padding: 0 8px;
+        }
+
+        .logo-small {
+            font-weight: 700;
+            font-size: 1.4rem;
+            background: linear-gradient(145deg, #1e4bd2, #3b82f6);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+        }
+
+        .new-chat-btn {
+            background: #2563eb;
+            color: white;
+            border: none;
+            width: 36px;
+            height: 36px;
+            border-radius: 12px;
+            font-size: 22px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            box-shadow: 0 4px 8px #1e3a8a20;
+            transition: 0.15s;
+        }
+
+        .new-chat-btn:hover {
+            background: #1d4ed8;
+            transform: scale(0.96);
+        }
+
+        .session-list {
+            flex: 1;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+
+        .session-item {
+            padding: 12px 14px;
+            background: white;
+            border-radius: 18px;
+            border: 1px solid #d9e9ff;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            transition: all 0.12s;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.02);
+        }
+
+        .session-item.active {
+            background: #2563eb;
+            border-color: #2563eb;
+            color: white;
+            box-shadow: 0 8px 14px -8px #1e4bd280;
+        }
+
+        .session-item.active .session-title {
+            color: white;
+        }
+
+        .session-title {
+            font-size: 0.9rem;
+            font-weight: 500;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            max-width: 170px;
+            color: #164863;
+        }
+
+        .session-delete {
+            opacity: 0.5;
+            font-size: 16px;
+            padding: 0 4px;
+            transition: opacity 0.1s;
+            color: inherit;
+        }
+
+        .session-item:hover .session-delete {
+            opacity: 1;
+        }
+
+        .session-delete:hover {
+            color: #ef4444;
+        }
+
+        .sidebar-footer {
+            margin-top: 16px;
+            padding: 8px 8px 0;
+            font-size: 0.75rem;
+            color: #5f7d9c;
+            border-top: 1px dashed #b7d3f0;
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+
+        .disclaimer-link {
+            color: #2563eb;
+            text-decoration: underline;
+            cursor: pointer;
+            background: none;
+            border: none;
+            text-align: left;
+            padding: 4px 0;
+            font-size: 0.75rem;
+        }
+
+        /* 右侧主区 */
+        .main {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            background: #f9fcff;
+            min-width: 0;
+        }
+
+        /* API 头部 */
+        .api-header {
+            padding: 16px 28px 8px;
+            display: flex;
+            align-items: center;
+            justify-content: flex-end;
+            border-bottom: 1px solid #c7dfff;
+            background: rgba(255,255,255,0.5);
+            backdrop-filter: blur(4px);
+        }
+
+        .api-box {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            background: white;
+            padding: 6px 12px 6px 20px;
+            border-radius: 60px;
+            border: 1px solid #bfdbfe;
+        }
+
+        .api-input {
+            border: none;
+            background: transparent;
+            padding: 8px 0;
+            font-size: 0.9rem;
+            width: 240px;
+            outline: none;
+        }
+
+        .api-badge {
+            background: #e0edff;
+            color: #1e4bd2;
+            padding: 4px 14px;
+            border-radius: 40px;
+            font-size: 0.8rem;
+            font-weight: 500;
+        }
+
+        .btn-sm {
+            background: #2563eb;
+            color: white;
+            border: none;
+            padding: 8px 18px;
+            border-radius: 40px;
+            font-size: 0.8rem;
+            cursor: pointer;
+        }
+
+        /* 模型栏 */
+        .model-row {
+            padding: 10px 28px;
+            display: flex;
+            align-items: center;
+            gap: 18px;
+            background: #ffffffc0;
+            backdrop-filter: blur(4px);
+            border-bottom: 1px solid #e2efff;
+        }
+
+        .model-select {
+            padding: 10px 20px;
+            border-radius: 32px;
+            border: 1px solid #b9d4f1;
+            background: white;
+            min-width: 260px;
+            font-size: 0.9rem;
+        }
+
+        .price-badge {
+            background: #e6f0ff;
+            padding: 6px 16px;
+            border-radius: 30px;
+            font-size: 0.8rem;
+            color: #0369a1;
+        }
+
+        .clear-session-btn {
+            margin-left: auto;
+            background: none;
+            border: 1px solid #cbd5e1;
+            padding: 6px 16px;
+            border-radius: 30px;
+            color: #475569;
+            cursor: pointer;
+        }
+
+        /* 聊天区域 */
+        .chat-area {
+            flex: 1;
+            overflow-y: auto;
+            padding: 20px 28px;
+            display: flex;
+            flex-direction: column;
+            gap: 18px;
+        }
+
+        .message-row {
+            display: flex;
+        }
+
+        .message-row.user {
+            justify-content: flex-end;
+        }
+
+        .bubble {
+            max-width: 80%;
+            padding: 14px 22px;
+            border-radius: 24px;
+            line-height: 1.55;
+            font-size: 0.95rem;
+            word-break: break-word;
+            box-shadow: 0 4px 10px -4px rgba(0,0,0,0.02);
+        }
+
+        .user .bubble {
+            background: #1e4bd2;
+            color: white;
+            border-bottom-right-radius: 6px;
+        }
+
+        .assistant .bubble {
+            background: white;
+            border: 1px solid #dbeafe;
+            border-bottom-left-radius: 6px;
+            color: #1e293b;
+        }
+
+        .system .bubble {
+            background: #fff1f0;
+            border: 1px solid #fecaca;
+            color: #b91c1c;
+        }
+
+        .streaming-cursor {
+            display: inline-block;
+            width: 6px;
+            height: 1.2em;
+            background: #3b82f6;
+            margin-left: 5px;
+            animation: blink 1s infinite;
+            border-radius: 2px;
+        }
+
+        @keyframes blink { 0%,100%{opacity:1;} 50%{opacity:0.3;} }
+
+        .empty-chat-message {
+            text-align: center;
+            margin-top: 70px;
+            color: #6f8fbb;
+        }
+
+        /* 输入区域 */
+        .input-container {
+            padding: 16px 28px 24px;
+            background: transparent;
+        }
+
+        .input-wrapper {
+            background: white;
+            border-radius: 32px;
+            padding: 6px 6px 6px 22px;
+            border: 1px solid #bbd7fb;
+            display: flex;
+            align-items: flex-end;
+            box-shadow: 0 6px 14px #bfd6ff30;
+        }
+
+        .msg-input {
+            flex: 1;
+            border: none;
+            resize: none;
+            padding: 14px 0;
+            font-size: 1rem;
+            outline: none;
+            background: transparent;
+            max-height: 150px;
+        }
+
+        .send-btn {
+            background: #1e40af;
+            color: white;
+            border: none;
+            width: 54px;
+            height: 54px;
+            border-radius: 40px;
+            font-size: 20px;
+            cursor: pointer;
+            box-shadow: 0 4px 10px #1e3a8a40;
+        }
+
+        .send-btn.stop {
+            background: #ef4444;
+        }
+
+        .send-btn:disabled {
+            background: #94a3b8;
+            box-shadow: none;
+        }
+
+        /* 弹窗 */
+        .modal-overlay {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: #0b1e33b0;
+            backdrop-filter: blur(3px);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+            visibility: hidden;
+        }
+
+        .modal-card {
+            background: white;
+            max-width: 480px;
+            width: 90%;
+            border-radius: 36px;
+            padding: 28px 32px;
+            box-shadow: 0 30px 50px #04142b40;
+            border: 1px solid #c4ddff;
+        }
+
+        .modal-card h3 {
+            color: #1e3a8a;
+            margin-bottom: 16px;
+        }
+
+        .modal-card p {
+            color: #334155;
+            margin-bottom: 24px;
+            line-height: 1.5;
+        }
+
+        .btn-primary {
+            background: #2563eb;
+            border: none;
+            color: white;
+            padding: 12px 24px;
+            border-radius: 40px;
+            cursor: pointer;
+        }
+
+        .btn-secondary {
+            background: #eef4ff;
+            border: 1px solid #b7d3f0;
+            color: #1e3a8a;
+            padding: 12px 24px;
+            border-radius: 40px;
+            cursor: pointer;
+        }
+
+        .footer-note {
+            text-align: right;
+            padding: 0 28px 8px;
+            font-size: 0.7rem;
+            color: #7b98bc;
+        }
+    </style>
+</head>
+<body>
+
+<!-- 免责声明弹窗 -->
+<div class="modal-overlay" id="disclaimerModal">
+    <div class="modal-card">
+        <h3>📋 使用声明</h3>
+        <p>本网站为第三方聚合工具，<strong>非 DeepSeek 官方运营</strong>。仅用于调用您自己的 API Key 进行模型测试。<br> 
+        所有生成内容由 DeepSeek API 提供。请遵守使用条款。本站不存储您的对话数据（仅保存在浏览器本地）。</p>
+        <div class="modal-actions" style="display:flex; gap:12px; justify-content:flex-end;">
+            <button class="btn-secondary" id="disagreeBtn">不同意</button>
+            <button class="btn-primary" id="agreeBtn">同意并继续</button>
+        </div>
+    </div>
+</div>
+
+<div class="sidebar">
+    <div class="sidebar-header">
+        <span class="logo-small">🧠 DeepSeek</span>
+        <button class="new-chat-btn" id="newSessionBtn" title="新建对话">+</button>
+    </div>
+    <div class="session-list" id="sessionListContainer"></div>
+    <div class="sidebar-footer">
+        <button class="disclaimer-link" id="showDisclaimerBtn">📄 免责声明</button>
+        <div>会话保存在本地</div>
+    </div>
+</div>
+
+<div class="main">
+    <div class="api-header">
+        <div class="api-box" id="apiBox"></div>
+    </div>
+
+    <div class="model-row">
+        <select id="modelSelect" class="model-select"></select>
+        <span class="price-badge" id="priceDisplay">—</span>
+        <button class="clear-session-btn" id="clearCurrentSessionBtn">🧹 清空当前对话</button>
+    </div>
+
+    <div class="chat-area" id="chatArea">
+        <div class="empty-chat-message">✨ 输入 DeepSeek API Key，开始对话</div>
+    </div>
+
+    <div class="input-container">
+        <div class="input-wrapper">
+            <textarea id="userInput" class="msg-input" placeholder="输入消息… (Enter 发送)" rows="1" disabled></textarea>
+            <button class="send-btn" id="sendStopBtn" disabled>➤</button>
+        </div>
+    </div>
+    <div class="footer-note">流式输出 · 多会话 · DeepSeek API</div>
+</div>
+
+<script>
+    (function(){
+        "use strict";
+
+        // ---------- DeepSeek 模型库 (官方常用模型) ----------
+        const MODELS = [
+            { id: 'deepseek-chat', name: 'DeepSeek Chat', category: '文本对话', price: '¥0.001/1k tokens' },
+            { id: 'deepseek-reasoner', name: 'DeepSeek Reasoner', category: '文本对话', price: '¥0.004/1k tokens' },
+            { id: 'deepseek-coder', name: 'DeepSeek Coder', category: '文本对话', price: '¥0.001/1k tokens' }
+        ];
+
+        // 分组 (用于下拉菜单)
+        const grouped = MODELS.reduce((acc, m) => {
+            if(!acc[m.category]) acc[m.category] = [];
+            acc[m.category].push(m);
+            return acc;
+        }, {});
+
+        // DOM 元素
+        const apiBox = document.getElementById('apiBox');
+        const modelSelect = document.getElementById('modelSelect');
+        const priceDisplay = document.getElementById('priceDisplay');
+        const chatArea = document.getElementById('chatArea');
+        const userInput = document.getElementById('userInput');
+        const sendStopBtn = document.getElementById('sendStopBtn');
+        const newSessionBtn = document.getElementById('newSessionBtn');
+        const sessionListDiv = document.getElementById('sessionListContainer');
+        const clearCurrentBtn = document.getElementById('clearCurrentSessionBtn');
+        const showDisclaimerBtn = document.getElementById('showDisclaimerBtn');
+        const modalOverlay = document.getElementById('disclaimerModal');
+        const agreeBtn = document.getElementById('agreeBtn');
+        const disagreeBtn = document.getElementById('disagreeBtn');
+
+        // 状态
+        let apiKey = '';
+        let isApiKeySet = false;
+        let sessions = [];
+        let currentSessionId = null;
+        let isLoading = false;
+        let streamingContent = '';
+        let abortController = null;
+        let selectedModelId = MODELS[0].id;
+
+        // ---------- Cookie ----------
+        function setCookie(n,v,d){ const e=new Date(); e.setTime(e.getTime()+d*864e5); document.cookie=`${n}=${encodeURIComponent(v)}; expires=${e.toUTCString()}; path=/`; }
+        function getCookie(n){ const m=document.cookie.match(new RegExp('(^| )'+n+'=([^;]+)')); return m?decodeURIComponent(m[2]):null; }
+        function deleteCookie(n){ document.cookie=`${n}=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/`; }
+
+        // 本地会话
+        function saveSessions(){ localStorage.setItem('deepseek_sessions', JSON.stringify(sessions)); }
+        function loadSessions(){
+            const saved = localStorage.getItem('deepseek_sessions');
+            if(saved) try { sessions = JSON.parse(saved); } catch(e){ sessions = []; }
+            if(!sessions.length) {
+                const defaultSession = { id: Date.now()+'-'+Math.random(), title: '新对话', messages: [], modelId: selectedModelId, createdAt: Date.now() };
+                sessions = [defaultSession];
+                currentSessionId = defaultSession.id;
+            } else {
+                currentSessionId = sessions[0].id;
+            }
+        }
+
+        function getCurrentSession(){ return sessions.find(s=>s.id===currentSessionId) || sessions[0]; }
+
+        // 渲染侧边栏
+        function renderSessionList(){
+            const html = sessions.map(s=>`
+                <div class="session-item ${s.id===currentSessionId?'active':''}" data-id="${s.id}">
+                    <span class="session-title">${s.title.slice(0,20)||'新对话'}</span>
+                    <span class="session-delete" data-delete-id="${s.id}">🗑️</span>
+                </div>
+            `).join('');
+            sessionListDiv.innerHTML = html || '<div style="padding:12px;color:#7f9bc2;">暂无会话</div>';
+            document.querySelectorAll('.session-item').forEach(el=>{
+                el.addEventListener('click', (e)=>{
+                    if(e.target.classList.contains('session-delete')) return;
+                    switchSession(el.dataset.id);
+                });
+            });
+            document.querySelectorAll('.session-delete').forEach(el=>{
+                el.addEventListener('click', (e)=>{
+                    e.stopPropagation();
+                    deleteSession(el.dataset.deleteId);
+                });
+            });
+        }
+
+        function switchSession(id){
+            currentSessionId = id;
+            const s = getCurrentSession();
+            if(s) selectedModelId = s.modelId || MODELS[0].id;
+            modelSelect.value = selectedModelId;
+            updatePriceTag();
+            renderMessages();
+            renderSessionList();
+            enableInputs(isApiKeySet);
+        }
+
+        function deleteSession(id){
+            if(sessions.length <= 1) { alert("至少保留一个会话"); return; }
+            sessions = sessions.filter(s=>s.id!==id);
+            if(currentSessionId === id) currentSessionId = sessions[0].id;
+            saveSessions();
+            renderSessionList();
+            renderMessages();
+        }
+
+        function createNewSession(){
+            const newId = Date.now()+'-'+Math.random();
+            const newSession = { id: newId, title: '新对话', messages: [], modelId: selectedModelId, createdAt: Date.now() };
+            sessions.push(newSession);
+            currentSessionId = newId;
+            saveSessions();
+            renderSessionList();
+            renderMessages();
+            enableInputs(isApiKeySet);
+            modelSelect.value = selectedModelId;
+            updatePriceTag();
+        }
+
+        function updateSessionModel(modelId){
+            const s = getCurrentSession();
+            if(s) { s.modelId = modelId; saveSessions(); }
+        }
+
+        function renderMessages(){
+            const s = getCurrentSession();
+            const msgs = s ? s.messages : [];
+            if(!msgs.length && !streamingContent){
+                chatArea.innerHTML = `<div class="empty-chat-message">✨ 输入消息开始对话</div>`;
+                return;
+            }
+            let html = '';
+            msgs.forEach(m=>{
+                const bubbleClass = `bubble ${m.role==='user'?'': (m.role==='system'?'system':'assistant')}`;
+                const content = (m.content||'').replace(/\n/g,'<br>');
+                html += `<div class="message-row ${m.role}"><div class="${bubbleClass}">${content}</div></div>`;
+            });
+            if(streamingContent){
+                html += `<div class="message-row assistant"><div class="bubble assistant">${streamingContent.replace(/\n/g,'<br>')}<span class="streaming-cursor"></span></div></div>`;
+            }
+            chatArea.innerHTML = html;
+            chatArea.scrollTop = chatArea.scrollHeight;
+        }
+
+        function addMessageToSession(role, content){
+            const s = getCurrentSession();
+            if(!s) return;
+            s.messages.push({ role, content });
+            if(s.messages.length === 1 && role==='user') s.title = content.slice(0,15) || '对话';
+            saveSessions();
+            renderMessages();
+            renderSessionList();
+        }
+
+        // API 区域
+        function renderApiSection(){
+            if(isApiKeySet){
+                const masked = apiKey.slice(0,8)+'...';
+                apiBox.innerHTML = `<span class="api-badge">🔑 ${masked}</span>
+                    <button class="btn-sm" id="changeApiBtn">更换</button>`;
+                document.getElementById('changeApiBtn').addEventListener('click', ()=>{
+                    deleteCookie('deepseek_api_key');
+                    isApiKeySet = false; apiKey = '';
+                    renderApiSection();
+                    enableInputs(false);
+                });
+            } else {
+                apiBox.innerHTML = `<input type="password" id="apiKeyInput" class="api-input" placeholder="DeepSeek API Key" />
+                    <button class="btn-sm" id="saveApiBtn">确认</button>`;
+                document.getElementById('saveApiBtn').addEventListener('click', ()=>{
+                    const val = document.getElementById('apiKeyInput').value.trim();
+                    if(!val) return;
+                    apiKey = val; isApiKeySet = true;
+                    setCookie('deepseek_api_key', apiKey, 30);
+                    renderApiSection();
+                    enableInputs(true);
+                });
+            }
+        }
+
+        function enableInputs(enabled){
+            userInput.disabled = !enabled || isLoading;
+            sendStopBtn.disabled = !enabled || isLoading || !userInput.value.trim();
+            modelSelect.disabled = !enabled;
+        }
+
+        function updateSendButton(){
+            sendStopBtn.disabled = !isApiKeySet || isLoading || !userInput.value.trim();
+        }
+
+        // 模型下拉
+        function renderModelDropdown(){
+            modelSelect.innerHTML = '';
+            for(let cat in grouped){
+                const og = document.createElement('optgroup');
+                og.label = `📁 ${cat}`;
+                grouped[cat].forEach(m=>{
+                    const opt = document.createElement('option');
+                    opt.value = m.id;
+                    opt.textContent = `${m.name}  ${m.price}`;
+                    og.appendChild(opt);
+                });
+                modelSelect.appendChild(og);
+            }
+            modelSelect.value = selectedModelId;
+            updatePriceTag();
+        }
+
+        function updatePriceTag(){
+            const m = MODELS.find(m=>m.id===selectedModelId);
+            priceDisplay.textContent = m ? m.price : '';
+        }
+
+        modelSelect.addEventListener('change', (e)=>{
+            selectedModelId = e.target.value;
+            updatePriceTag();
+            updateSessionModel(selectedModelId);
+        });
+
+        clearCurrentBtn.addEventListener('click', ()=>{
+            const s = getCurrentSession();
+            if(s) { s.messages = []; saveSessions(); renderMessages(); }
+        });
+
+        // 发送/停止 (DeepSeek API 兼容 OpenAI 格式)
+        async function handleSend(){
+            const content = userInput.value.trim();
+            if(!content || !isApiKeySet || isLoading) return;
+            const session = getCurrentSession();
+            if(!session) return;
+
+            addMessageToSession('user', content);
+            userInput.value = '';
+            updateSendButton();
+            autoResize();
+
+            isLoading = true;
+            streamingContent = '';
+            sendStopBtn.classList.add('stop');
+            sendStopBtn.textContent = '◼';
+            userInput.disabled = true;
+            modelSelect.disabled = true;
+
+            const payloadMessages = session.messages.map(m=>({role:m.role, content:m.content}));
+            const body = { model: selectedModelId, messages: payloadMessages, stream: true };
+            abortController = new AbortController();
+
+            try{
+                // DeepSeek 官方端点
+                const resp = await fetch('https://api.deepseek.com/v1/chat/completions', {
+                    method: 'POST',
+                    headers: {'Content-Type':'application/json', 'Authorization':`Bearer ${apiKey}`},
+                    body: JSON.stringify(body),
+                    signal: abortController.signal
+                });
+                if(!resp.ok) throw new Error(await resp.text());
+                const reader = resp.body.getReader();
+                const decoder = new TextDecoder();
+                let full = '';
+                while(true){
+                    const {done, value} = await reader.read();
+                    if(done) break;
+                    const chunk = decoder.decode(value, {stream:true});
+                    const lines = chunk.split('\n').filter(l=>l.trim());
+                    for(let line of lines){
+                        if(line.startsWith('data: ')){
+                            const data = line.slice(6);
+                            if(data==='[DONE]'){
+                                if(full) session.messages.push({role:'assistant', content:full});
+                                streamingContent = '';
+                                saveSessions();
+                                renderMessages();
+                                break;
+                            }
+                            try{
+                                const json = JSON.parse(data);
+                                const delta = json.choices?.[0]?.delta?.content;
+                                if(delta){ full+=delta; streamingContent = full; renderMessages(); }
+                            }catch(e){}
+                        }
+                    }
+                }
+            }catch(e){
+                if(e.name!=='AbortError'){
+                    addMessageToSession('system', `请求失败: ${e.message}`);
+                } else {
+                    if(streamingContent) session.messages.push({role:'assistant', content:streamingContent+' [已停止]'});
+                    streamingContent = '';
+                }
+                renderMessages();
+            } finally{
+                isLoading = false;
+                sendStopBtn.classList.remove('stop');
+                sendStopBtn.textContent = '➤';
+                userInput.disabled = !isApiKeySet;
+                modelSelect.disabled = !isApiKeySet;
+                abortController = null;
+                updateSendButton();
+                saveSessions();
+                renderSessionList();
+            }
+        }
+
+        function stopStream(){ if(abortController) abortController.abort(); }
+
+        sendStopBtn.addEventListener('click', ()=> isLoading ? stopStream() : handleSend());
+        userInput.addEventListener('input', ()=>{ updateSendButton(); autoResize(); });
+        userInput.addEventListener('keydown', (e)=>{
+            if(e.key==='Enter' && !e.shiftKey){
+                e.preventDefault();
+                isLoading ? stopStream() : handleSend();
+            }
+        });
+        function autoResize(){ userInput.style.height='auto'; userInput.style.height=Math.min(userInput.scrollHeight,150)+'px'; }
+
+        newSessionBtn.addEventListener('click', createNewSession);
+
+        // 免责弹窗
+        function showModal(){ modalOverlay.style.visibility = 'visible'; }
+        function hideModal(){ modalOverlay.style.visibility = 'hidden'; }
+        agreeBtn.addEventListener('click', ()=>{ setCookie('deepseek_disclaimer','1',365); hideModal(); });
+        disagreeBtn.addEventListener('click', ()=>{ window.location.href = 'about:blank'; });
+        showDisclaimerBtn.addEventListener('click', showModal);
+
+        // 初始化
+        function init(){
+            loadSessions();
+            const savedKey = getCookie('deepseek_api_key');
+            if(savedKey){ apiKey = savedKey; isApiKeySet = true; }
+            renderApiSection();
+            renderModelDropdown();
+            const cur = getCurrentSession();
+            if(cur) selectedModelId = cur.modelId || MODELS[0].id;
+            modelSelect.value = selectedModelId;
+            updatePriceTag();
+            renderSessionList();
+            renderMessages();
+            enableInputs(isApiKeySet);
+            if(!getCookie('deepseek_disclaimer')) showModal();
+        }
+        init();
+    })();
+</script>
+</body>
+</html>
