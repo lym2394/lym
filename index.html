@@ -77,14 +77,14 @@
             border:1.5px solid rgba(59,130,246,0.15);
             background:rgba(255,255,255,0.8);
             border-radius:24px;
-            transition:all 0.008s;
+            transition:all 0.005s;
             position:relative;
             overflow:hidden
         }
 
         .cat-tab:active{
-            transform:scale(0.92);
-            transition:transform 0.008s;
+            transform:scale(0.9);
+            transition:transform 0.005s;
             background:rgba(59,130,246,0.2)
         }
 
@@ -94,7 +94,7 @@
             color:#1e40af;
             transform:translateY(-2px);
             box-shadow:0 4px 12px rgba(37,99,235,0.2);
-            transition:all 0.008s
+            transition:all 0.005s
         }
 
         .cat-tab.active{
@@ -123,7 +123,7 @@
             margin:3px 0;
             border-radius:12px;
             cursor:pointer;
-            transition:all 0.008s;
+            transition:all 0.005s;
             display:flex;
             align-items:center;
             gap:10px;
@@ -142,12 +142,12 @@
             transform:translateX(5px) scale(1.02);
             box-shadow:0 6px 20px rgba(37,99,235,0.2);
             z-index:10;
-            transition:all 0.008s
+            transition:all 0.005s
         }
 
         .doc-item:active{
-            transform:scale(0.94);
-            transition:transform 0.008s;
+            transform:scale(0.92);
+            transition:transform 0.005s;
             background:#bfdbfe;
             border-color:#2563eb
         }
@@ -166,41 +166,40 @@
             height:18px;
             opacity:0.7;
             flex-shrink:0;
-            transition:all 0.008s
+            transition:all 0.005s
         }
 
         .doc-item:hover .doc-icon{
             transform:rotate(-10deg) scale(1.2);
             opacity:1;
             color:#2563eb;
-            transition:all 0.008s
+            transition:all 0.005s
         }
 
         .doc-item:active .doc-icon{
             transform:rotate(15deg) scale(0.9);
-            transition:all 0.008s
+            transition:all 0.005s
         }
 
         .doc-info{flex:1;min-width:0}
-        .doc-title{font-weight:550;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;transition:all 0.008s}
+        .doc-title{font-weight:550;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;transition:all 0.005s}
 
         .doc-item:hover .doc-title{
             letter-spacing:0.02em;
             color:#1e40af;
-            transition:all 0.008s
+            transition:all 0.005s
         }
 
-        .doc-filename{font-size:0.68rem;color:#94a3b8;margin-top:2px;font-weight:450;transition:all 0.008s}
-        .doc-item:hover .doc-filename{color:#3b82f6;transition:all 0.008s}
+        .doc-filename{font-size:0.68rem;color:#94a3b8;margin-top:2px;font-weight:450;transition:all 0.005s}
+        .doc-item:hover .doc-filename{color:#3b82f6;transition:all 0.005s}
         .doc-item.active .doc-filename{color:#2563eb}
 
-        /* 点击波纹 */
         .ripple-effect{
             position:absolute;
             border-radius:50%;
             background:rgba(59,130,246,0.4);
             transform:scale(0);
-            animation:ripple 0.2s ease-out;
+            animation:ripple 0.15s ease-out;
             pointer-events:none
         }
 
@@ -366,7 +365,7 @@
         (function(){
             "use strict";
             
-            // 配置 marked - 关键：设置 sanitize 为 false 以支持原生 HTML 链接
+            // 配置 marked - 恢复默认行为，不覆盖 renderer
             if(typeof marked!=='undefined'){
                 marked.setOptions({
                     sanitize: false,
@@ -375,24 +374,7 @@
                     headerIds: false,
                     mangle: false
                 });
-                
-                // 自定义渲染器确保链接正常
-                const renderer = new marked.Renderer();
-                
-                // 保留原始链接渲染
-                renderer.link = function(href, title, text) {
-                    const titleAttr = title ? ` title="${title}"` : '';
-                    return `<a href="${href}"${titleAttr} target="_blank" rel="noopener noreferrer">${text}</a>`;
-                };
-                
-                // 保留原始图片渲染
-                renderer.image = function(href, title, text) {
-                    const titleAttr = title ? ` title="${title}"` : '';
-                    const altAttr = text ? ` alt="${text}"` : ' alt=""';
-                    return `<img src="${href}"${altAttr}${titleAttr} style="max-width:100%;border-radius:8px;margin:12px 0;">`;
-                };
-                
-                marked.setOptions({ renderer: renderer });
+                // 不自定义 renderer，让 marked 使用默认的链接和图片渲染
             }
 
             const TOTAL_FILES=100;
@@ -416,7 +398,7 @@
                     if(cat===currentCategory)return;
                     
                     this.style.transform='scale(0.9)';
-                    setTimeout(()=>{this.style.transform=''},8);
+                    setTimeout(()=>{this.style.transform=''},5);
                     
                     document.querySelectorAll('.cat-tab').forEach(t=>t.classList.remove('active'));
                     this.classList.add('active');
@@ -501,8 +483,8 @@
                                 <div class="doc-filename">${doc.filename}</div>
                             </div>`;
                         
-                        div.addEventListener('click',function(e){
-                            // 创建波纹元素
+                        div.addEventListener('mousedown',function(e){
+                            // 立即执行动画，不等待
                             const ripple=document.createElement('span');
                             ripple.className='ripple-effect';
                             const rect=this.getBoundingClientRect();
@@ -511,14 +493,16 @@
                             ripple.style.left=(e.clientX-rect.left-size/2)+'px';
                             ripple.style.top=(e.clientY-rect.top-size/2)+'px';
                             this.appendChild(ripple);
-                            setTimeout(()=>ripple.remove(),200);
+                            setTimeout(()=>ripple.remove(),150);
                             
-                            // 立即缩放动画
-                            this.style.transform='scale(0.93)';
+                            this.style.transform='scale(0.92)';
                             setTimeout(()=>{
                                 this.style.transform='';
-                                loadDoc(index,category)
-                            },25);
+                            },5);
+                        });
+                        
+                        div.addEventListener('click',function(){
+                            loadDoc(index,category);
                         });
                         
                         docListEl.appendChild(div);
