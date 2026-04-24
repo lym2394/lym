@@ -4,486 +4,23 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
     <title>LYM2394的导航</title>
-    <!-- Markdown 解析 & 代码高亮 -->
-    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js">
-</script>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/atom-one-dark.min.css">
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js">
-</script>
-    <!-- 引入圆滑美观的字体 -->
+    
+    <!-- 引入字体 -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&family=Noto+Sans+SC:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-    <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-
-        body {
-            font-family: 'Inter', 'Noto Sans SC', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue', sans-serif;
-            background: #f8fafc;
-            color: #1e293b;
-            height: 100vh;
-            overflow: hidden;
-            font-weight: 400;
-            letter-spacing: -0.01em;
-        }
-
-        .app {
-            display: flex;
-            height: 100vh;
-            background: #ffffff;
-            border-radius: 0;
-            overflow: hidden;
-            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.08);
-        }
-
-        /* 左侧边栏 - 优雅圆润风格 */
-        .sidebar {
-            width: 340px;
-            background: #ffffff;
-            border-right: 1px solid #f1f5f9;
-            display: flex;
-            flex-direction: column;
-            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-            backdrop-filter: blur(10px);
-        }
-
-        .sidebar-header {
-            padding: 24px 24px 20px 24px;
-            border-bottom: 1px solid #f1f5f9;
-            background: linear-gradient(135deg, #fafbff 0%, #f8faff 100%);
-        }
-
-        .sidebar-header h2 {
-            font-size: 1.35rem;
-            font-weight: 650;
-            color: #0f172a;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            margin-bottom: 6px;
-            letter-spacing: -0.02em;
-        }
-
-        .sidebar-header p {
-            font-size: 0.8rem;
-            color: #64748b;
-            margin-top: 4px;
-            font-weight: 450;
-            letter-spacing: -0.01em;
-        }
-
-        .category-tabs {
-            display: flex;
-            gap: 8px;
-            padding: 16px 20px;
-            background: #ffffff;
-            border-bottom: 1px solid #f1f5f9;
-        }
-
-        .cat-tab {
-            flex: 1;
-            text-align: center;
-            padding: 10px 12px;
-            font-size: 0.85rem;
-            font-weight: 550;
-            color: #64748b;
-            cursor: pointer;
-            border: 1.5px solid #e2e8f0;
-            background: #ffffff;
-            border-radius: 30px;
-            transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
-            letter-spacing: -0.01em;
-            backdrop-filter: blur(5px);
-        }
-
-        .cat-tab:hover {
-            background: #f8fafc;
-            border-color: #cbd5e1;
-            color: #334155;
-            transform: translateY(-1px);
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.04);
-        }
-
-        .cat-tab.active {
-            background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
-            color: #ffffff;
-            border-color: transparent;
-            font-weight: 600;
-            box-shadow: 0 6px 16px rgba(37, 99, 235, 0.25);
-            transform: translateY(-2px);
-        }
-
-        .doc-list {
-            flex: 1;
-            overflow-y: auto;
-            padding: 12px 12px;
-            scrollbar-width: thin;
-            scrollbar-color: #e2e8f0 transparent;
-            background: #fafbff;
-        }
-
-        .doc-list::-webkit-scrollbar {
-            width: 5px;
-        }
-        .doc-list::-webkit-scrollbar-track {
-            background: transparent;
-            margin: 8px 0;
-        }
-        .doc-list::-webkit-scrollbar-thumb {
-            background: #e2e8f0;
-            border-radius: 20px;
-        }
-        .doc-list::-webkit-scrollbar-thumb:hover {
-            background: #cbd5e1;
-        }
-
-        .doc-item {
-            padding: 14px 18px;
-            margin: 4px 0;
-            border-radius: 14px;
-            cursor: pointer;
-            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
-            display: flex;
-            align-items: center;
-            gap: 14px;
-            color: #475569;
-            font-size: 0.9rem;
-            font-weight: 500;
-            border: 1px solid transparent;
-            background: #ffffff;
-            letter-spacing: -0.01em;
-            position: relative;
-            overflow: hidden;
-        }
-
-        .doc-item::before {
-            content: '';
-            position: absolute;
-            left: 0;
-            top: 0;
-            height: 100%;
-            width: 4px;
-            background: #2563eb;
-            border-radius: 0 8px 8px 0;
-            transform: scaleY(0);
-            transition: transform 0.2s cubic-bezier(0.4, 0, 0.2, 1);
-        }
-
-        .doc-item:hover {
-            background: #f8faff;
-            border-color: #e2e8f0;
-            transform: translateX(4px);
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.04);
-        }
-
-        .doc-item:hover::before {
-            transform: scaleY(0.6);
-        }
-
-        .doc-item.active {
-            background: linear-gradient(135deg, #eff6ff 0%, #dbeafe 100%);
-            border-color: #bfdbfe;
-            color: #1e40af;
-            font-weight: 600;
-            box-shadow: 0 6px 16px rgba(37, 99, 235, 0.12);
-            transform: translateX(6px);
-        }
-
-        .doc-item.active::before {
-            transform: scaleY(1);
-            width: 5px;
-        }
-
-        .doc-icon {
-            width: 22px;
-            height: 22px;
-            opacity: 0.8;
-            flex-shrink: 0;
-            transition: all 0.2s;
-        }
-
-        .doc-item.active .doc-icon {
-            opacity: 1;
-            color: #2563eb;
-        }
-
-        .doc-info {
-            flex: 1;
-            min-width: 0;
-        }
-
-        .doc-title {
-            font-weight: 550;
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
-            font-size: 0.9rem;
-            letter-spacing: -0.01em;
-        }
-
-        .doc-filename {
-            font-size: 0.7rem;
-            color: #94a3b8;
-            margin-top: 3px;
-            font-weight: 450;
-            letter-spacing: -0.01em;
-        }
-
-        .doc-item.active .doc-filename {
-            color: #60a5fa;
-        }
-
-        .empty-state {
-            padding: 60px 20px;
-            text-align: center;
-            color: #94a3b8;
-            font-size: 0.9rem;
-            font-weight: 450;
-        }
-        .empty-state svg {
-            width: 48px;
-            height: 48px;
-            margin-bottom: 20px;
-            opacity: 0.4;
-        }
-
-        /* 右侧内容区 */
-        .content {
-            flex: 1;
-            display: flex;
-            flex-direction: column;
-            background: #ffffff;
-            overflow: hidden;
-        }
-
-        .content-header {
-            padding: 20px 36px;
-            border-bottom: 1px solid #f1f5f9;
-            background: rgba(255, 255, 255, 0.8);
-            backdrop-filter: blur(20px);
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            position: sticky;
-            top: 0;
-            z-index: 10;
-        }
-
-        .content-title {
-            font-size: 1.15rem;
-            font-weight: 600;
-            color: #0f172a;
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            letter-spacing: -0.02em;
-        }
-
-        .content-badge {
-            background: linear-gradient(135deg, #dbeafe 0%, #eff6ff 100%);
-            color: #1e40af;
-            padding: 4px 14px;
-            border-radius: 24px;
-            font-size: 0.75rem;
-            font-weight: 600;
-            letter-spacing: -0.01em;
-            border: 1px solid #bfdbfe;
-        }
-
-        .content-body {
-            flex: 1;
-            overflow-y: auto;
-            padding: 40px 52px;
-            scroll-behavior: smooth;
-            background: #fafbff;
-        }
-
-        .markdown-body {
-            max-width: 920px;
-            margin: 0 auto;
-            line-height: 1.75;
-            font-size: 0.95rem;
-            font-weight: 400;
-        }
-
-        /* Markdown 样式优化 */
-        .markdown-body h1 {
-            font-size: 2.2rem;
-            font-weight: 700;
-            margin-top: 0;
-            margin-bottom: 1.2rem;
-            padding-bottom: 0.6rem;
-            border-bottom: 2px solid #e2e8f0;
-            color: #0f172a;
-            letter-spacing: -0.03em;
-        }
-        .markdown-body h2 {
-            font-size: 1.6rem;
-            font-weight: 650;
-            margin-top: 2.2rem;
-            margin-bottom: 1rem;
-            color: #1e293b;
-            letter-spacing: -0.02em;
-        }
-        .markdown-body h3 {
-            font-size: 1.3rem;
-            font-weight: 600;
-            margin-top: 1.6rem;
-            margin-bottom: 0.8rem;
-            color: #334155;
-            letter-spacing: -0.01em;
-        }
-        .markdown-body p {
-            margin-bottom: 1.2rem;
-            color: #475569;
-        }
-        .markdown-body code {
-            background: #f1f5f9;
-            padding: 0.25rem 0.5rem;
-            border-radius: 6px;
-            font-size: 0.85em;
-            color: #1e293b;
-            font-weight: 500;
-        }
-        .markdown-body pre {
-            background: #1e293b;
-            border-radius: 14px;
-            padding: 1.4rem;
-            overflow-x: auto;
-            margin: 1.8rem 0;
-            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.06);
-        }
-        .markdown-body pre code {
-            background: transparent;
-            padding: 0;
-            color: #e2e8f0;
-            font-weight: 400;
-        }
-        .markdown-body blockquote {
-            border-left: 4px solid #2563eb;
-            padding-left: 1.2rem;
-            margin: 1.4rem 0;
-            color: #64748b;
-            font-style: italic;
-            background: #f8fafc;
-            padding: 1rem 1.2rem;
-            border-radius: 0 12px 12px 0;
-        }
-        .markdown-body ul, .markdown-body ol {
-            margin: 1.2rem 0;
-            padding-left: 2rem;
-        }
-        .markdown-body li {
-            margin: 0.6rem 0;
-        }
-        .markdown-body a {
-            color: #2563eb;
-            text-decoration: none;
-            font-weight: 500;
-            transition: all 0.2s;
-        }
-        .markdown-body a:hover {
-            text-decoration: underline;
-            color: #1d4ed8;
-        }
-        .markdown-body table {
-            width: 100%;
-            border-collapse: collapse;
-            margin: 1.4rem 0;
-            border-radius: 12px;
-            overflow: hidden;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.04);
-        }
-        .markdown-body th, .markdown-body td {
-            border: 1px solid #e2e8f0;
-            padding: 0.9rem;
-            text-align: left;
-        }
-        .markdown-body th {
-            background: #f8fafc;
-            font-weight: 600;
-        }
-
-        .iframe-container {
-            width: 100%;
-            height: 100%;
-            border: 1px solid #e2e8f0;
-            border-radius: 16px;
-            overflow: hidden;
-            background: #ffffff;
-            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.04);
-        }
-        .iframe-container iframe {
-            width: 100%;
-            height: 100%;
-            border: none;
-            border-radius: 16px;
-        }
-
-        .welcome-message {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            height: 100%;
-            text-align: center;
-            color: #94a3b8;
-        }
-        .welcome-message svg {
-            width: 90px;
-            height: 90px;
-            margin-bottom: 28px;
-            opacity: 0.3;
-        }
-        .welcome-message h3 {
-            font-size: 1.6rem;
-            font-weight: 600;
-            margin-bottom: 10px;
-            color: #64748b;
-            letter-spacing: -0.02em;
-        }
-        .welcome-message p {
-            color: #94a3b8;
-            font-weight: 450;
-            letter-spacing: -0.01em;
-        }
-
-        .loading-spinner {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            height: 100%;
-        }
-        .spinner {
-            width: 44px;
-            height: 44px;
-            border: 3px solid #e2e8f0;
-            border-top-color: #2563eb;
-            border-radius: 50%;
-            animation: spin 0.7s infinite linear;
-            box-shadow: 0 4px 12px rgba(37, 99, 235, 0.1);
-        }
-        @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
-        }
-
-        @media (max-width: 768px) {
-            .sidebar {
-                width: 300px;
-            }
-            .content-body {
-                padding: 28px 24px;
-            }
-        }
-    </style>
+    
+    <!-- 引入样式 -->
+    <link rel="stylesheet" href="styles.css">
+    
+    <!-- 引入依赖库 -->
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/atom-one-dark.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
 </head>
 <body>
     <div class="app">
+        <!-- 左侧文档列表 -->
         <div class="sidebar">
             <div class="sidebar-header">
                 <h2>
@@ -496,11 +33,13 @@
                 <p id="sidebarHint">/md/ 目录下的站内文档</p>
             </div>
 
+            <!-- 分类切换标签 -->
             <div class="category-tabs">
                 <button class="cat-tab active" data-cat="md">📄 站内文档</button>
                 <button class="cat-tab" data-cat="html">🌐 站内网站</button>
             </div>
 
+            <!-- 文档列表容器 -->
             <div class="doc-list" id="docList">
                 <div class="empty-state">
                     <p>正在检测文件...</p>
@@ -508,6 +47,7 @@
             </div>
         </div>
 
+        <!-- 右侧内容区 -->
         <div class="content">
             <div class="content-header" id="contentHeader">
                 <div class="content-title">
@@ -528,10 +68,17 @@
         </div>
     </div>
 
+    <!-- 引入自定义模块 -->
+    <script src="md-loader.js"></script>
+    <script src="html-loader.js"></script>
+    <script src="content-display.js"></script>
+
+    <!-- 主控制脚本 -->
     <script>
         (function() {
             "use strict";
 
+            // 配置 marked
             if (typeof marked !== 'undefined') {
                 marked.setOptions({
                     highlight: function(code, lang) {
@@ -545,21 +92,16 @@
                 });
             }
 
-            const TOTAL_FILES = 100;
-            const CONCURRENCY = 10;
             const docListEl = document.getElementById('docList');
-            const contentBody = document.getElementById('contentBody');
-            const currentDocTitle = document.getElementById('currentDocTitle');
-            const docBadge = document.getElementById('docBadge');
             const sidebarHint = document.getElementById('sidebarHint');
-
+            
             let currentCategory = 'md';
             let activeFile = null;
-            const docItems = new Map();
-            const cache = new Map();
-            // 记录每个分类是否已加载过列表
+            const docItems = new Map(); // 存储DOM元素
             const listLoaded = { md: false, html: false };
+            const cachedLists = { md: null, html: null }; // 缓存列表结果
 
+            // 分类切换
             const catTabs = document.querySelectorAll('.cat-tab');
             catTabs.forEach(tab => {
                 tab.addEventListener('click', () => {
@@ -572,109 +114,52 @@
                     
                     sidebarHint.textContent = cat === 'md' ? '/md/ 目录下的站内文档' : '/html/ 目录下的网站页面';
                     
-                    // 如果该分类列表已加载，直接显示缓存的列表
-                    if (listLoaded[cat]) {
-                        showCachedList(cat);
-                    } else {
-                        loadDocList(cat);
-                    }
+                    // 加载或显示缓存的列表
+                    loadOrShowList(cat);
                     
-                    contentBody.innerHTML = `<div class="welcome-message"><h3>${cat === 'md' ? '站内文档' : '站内网站'}</h3><p>点击左侧文件加载内容</p></div>`;
-                    currentDocTitle.textContent = '选择导航文件';
-                    docBadge.style.display = 'none';
+                    ContentDisplay.showWelcome(cat);
                     activeFile = null;
                 });
             });
 
-            function padIndex(i) {
-                return i.toString().padStart(2, '0');
-            }
-
-            // 显示缓存的列表并恢复激活状态
-            function showCachedList(category) {
-                docListEl.innerHTML = '';
-                const keys = Array.from(docItems.keys()).filter(key => key.startsWith(category + '-'));
-                if (keys.length === 0) {
-                    docListEl.innerHTML = `<div class="empty-state"><p>未检测到文件</p></div>`;
-                    return;
-                }
-                keys.forEach(key => {
-                    const item = docItems.get(key);
-                    if (item) {
-                        docListEl.appendChild(item);
-                    }
-                });
-            }
-
-            async function checkAndGetDocInfo(index, category) {
-                const padded = padIndex(index);
-                const url = category === 'md' ? `./md/${padded}.md` : `./html/${padded}.html`;
-                
-                try {
-                    const response = await fetch(url, { method: 'HEAD' });
-                    if (!response.ok) return null;
+            // 加载或显示缓存的列表
+            async function loadOrShowList(category) {
+                if (listLoaded[category] && cachedLists[category]) {
+                    // 显示缓存的列表
+                    renderList(cachedLists[category], category);
+                } else {
+                    // 加载新列表
+                    docListEl.innerHTML = '<div class="empty-state"><p>正在检测文件...</p></div>';
                     
-                    const contentResponse = await fetch(url);
-                    const text = await contentResponse.text();
-                    
-                    let title = null;
+                    let results;
                     if (category === 'md') {
-                        const match = text.match(/^#\s+(.*?)(?:\r?\n|$)/m);
-                        if (match && match[1]) title = match[1].trim();
+                        results = await MDLoader.loadMDDocList();
                     } else {
-                        const match = text.match(/<title>(.*?)<\/title>/i);
-                        if (match && match[1]) title = match[1].trim();
+                        results = await HTMLLoader.loadHTMLDocList();
                     }
                     
-                    if (!title) title = `${padded}.${category}`;
-                    
-                    let html = '';
-                    if (category === 'md') {
-                        html = typeof marked !== 'undefined' ? marked.parse(text) : `<pre>${text}</pre>`;
-                    } else {
-                        html = url;
-                    }
-                    
-                    return {
-                        title: title,
-                        html: html,
-                        filename: `${padded}.${category}`,
-                        exists: true,
-                        category: category
-                    };
-                } catch (error) {
-                    return null;
+                    cachedLists[category] = results;
+                    listLoaded[category] = true;
+                    renderList(results, category);
                 }
             }
 
-            async function loadDocList(category) {
-                docListEl.innerHTML = '<div class="empty-state"><p>正在检测文件...</p></div>';
-                
-                // 清空当前分类的缓存DOM
-                const keysToRemove = Array.from(docItems.keys()).filter(key => key.startsWith(category + '-'));
-                keysToRemove.forEach(key => docItems.delete(key));
-                
-                const results = [];
-                for (let i = 0; i < TOTAL_FILES; i += CONCURRENCY) {
-                    const batch = [];
-                    for (let j = i; j < Math.min(i + CONCURRENCY, TOTAL_FILES); j++) {
-                        batch.push(checkAndGetDocInfo(j + 1, category));
-                    }
-                    const batchResults = await Promise.all(batch);
-                    results.push(...batchResults);
-                }
-                
+            // 渲染列表
+            function renderList(results, category) {
                 docListEl.innerHTML = '';
+                docItems.clear();
+                
                 let hasDocs = false;
                 
                 results.forEach((docInfo, idx) => {
                     const index = idx + 1;
                     if (docInfo && docInfo.exists) {
                         hasDocs = true;
-                        const key = category + '-' + padIndex(index);
-                        cache.set(key, docInfo);
-                        const docItem = createDocItem(index, docInfo, category);
+                        const docItem = ContentDisplay.createDocItem(index, docInfo, category, (idx, cat) => {
+                            loadDocument(idx, cat);
+                        });
                         docListEl.appendChild(docItem);
+                        const key = category + '-' + MDLoader.padIndex(index);
                         docItems.set(key, docItem);
                     }
                 });
@@ -691,64 +176,40 @@
                         </div>
                     `;
                 }
-                
-                // 标记该分类已加载
-                listLoaded[category] = true;
             }
 
-            function createDocItem(index, docInfo, category) {
-                const div = document.createElement('div');
-                div.className = 'doc-item';
-                div.dataset.index = index;
-                div.dataset.cat = category;
-                
-                const displayTitle = docInfo.title.length > 30 ? 
-                    docInfo.title.slice(0, 28) + '…' : docInfo.title;
-                
-                div.innerHTML = `
-                    <svg class="doc-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
-                        <path d="M4 4h16v16H4z"/>
-                        <path d="M8 8h8M8 12h8M8 16h5"/>
-                    </svg>
-                    <div class="doc-info">
-                        <div class="doc-title">${escapeHtml(displayTitle)}</div>
-                        <div class="doc-filename">${docInfo.filename}</div>
-                    </div>
-                `;
-                
-                div.addEventListener('click', () => loadDocument(index, category));
-                
-                return div;
-            }
-
+            // 加载并显示文档
             async function loadDocument(index, category) {
+                // 更新激活状态
                 if (activeFile) {
-                    const prevKey = activeFile.category + '-' + padIndex(activeFile.index);
+                    const prevKey = activeFile.category + '-' + MDLoader.padIndex(activeFile.index);
                     const prevItem = docItems.get(prevKey);
                     if (prevItem) prevItem.classList.remove('active');
                 }
                 
-                const currentKey = category + '-' + padIndex(index);
+                const currentKey = category + '-' + MDLoader.padIndex(index);
                 const currentItem = docItems.get(currentKey);
                 if (currentItem) currentItem.classList.add('active');
                 
                 activeFile = { index, category };
                 
-                if (cache.has(currentKey)) {
-                    const docInfo = cache.get(currentKey);
-                    displayDocument(docInfo, index, category);
-                    return;
+                ContentDisplay.showLoading();
+                
+                let docInfo;
+                if (category === 'md') {
+                    docInfo = await MDLoader.getMDContent(index);
+                } else {
+                    docInfo = await HTMLLoader.getHTMLContent(index);
                 }
                 
-                contentBody.innerHTML = '<div class="loading-spinner"><div class="spinner"></div></div>';
-                currentDocTitle.textContent = '加载中...';
-                docBadge.style.display = 'none';
-                
-                const docInfo = await checkAndGetDocInfo(index, category);
                 if (docInfo && docInfo.exists) {
-                    cache.set(currentKey, docInfo);
-                    displayDocument(docInfo, index, category);
+                    if (category === 'md') {
+                        ContentDisplay.displayMDDoc(docInfo);
+                    } else {
+                        ContentDisplay.displayHTMLDoc(docInfo);
+                    }
                     
+                    // 更新列表项标题
                     if (currentItem) {
                         const titleEl = currentItem.querySelector('.doc-title');
                         const displayTitle = docInfo.title.length > 30 ? 
@@ -756,41 +217,14 @@
                         titleEl.textContent = displayTitle;
                     }
                 } else {
-                    contentBody.innerHTML = `<div class="welcome-message"><h3>无法加载文件</h3><p>文件可能已被移除或无法访问</p></div>`;
-                    currentDocTitle.textContent = '选择导航文件';
+                    const padded = category === 'md' ? MDLoader.padIndex(index) : HTMLLoader.padIndex(index);
+                    const filename = `${padded}.${category}`;
+                    ContentDisplay.showError(filename);
                 }
             }
 
-            function displayDocument(docInfo, index, category) {
-                currentDocTitle.textContent = docInfo.title;
-                docBadge.textContent = docInfo.filename;
-                docBadge.style.display = 'inline-block';
-                
-                if (category === 'md') {
-                    contentBody.innerHTML = `<div class="markdown-body">${docInfo.html}</div>`;
-                    if (typeof hljs !== 'undefined') {
-                        contentBody.querySelectorAll('pre code').forEach(block => {
-                            if (!block.classList.contains('hljs')) {
-                                hljs.highlightElement(block);
-                            }
-                        });
-                    }
-                } else {
-                    contentBody.innerHTML = `
-                        <div class="iframe-container">
-                            <iframe src="./html/${docInfo.filename}" sandbox="allow-same-origin allow-scripts" title="${docInfo.title}"></iframe>
-                        </div>`;
-                }
-            }
-
-            function escapeHtml(text) {
-                const div = document.createElement('div');
-                div.textContent = text;
-                return div.innerHTML;
-            }
-
-            // 初始化加载 MD 列表
-            loadDocList('md');
+            // 初始化加载MD列表
+            loadOrShowList('md');
         })();
     </script>
 </body>
